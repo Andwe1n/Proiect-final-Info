@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Problema Bancnotelor - DinamicGreedy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 102, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 245, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 70%, rgba(138, 43, 226, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 128, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+            z-index: -1;
+            animation: meshMove 20s ease-in-out infinite;
+        }
+
+        @keyframes meshMove {
+            0%, 100% {
+                background-position: 0% 0%, 100% 0%, 0% 100%, 100% 100%, 0% 0%;
+            }
+            50% {
+                background-position: 100% 100%, 0% 0%, 100% 100%, 0% 0%, 50% 50%;
+            }
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            padding: 1.5rem 0;
+        }
+
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 3rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00f5ff, #0066ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(135deg, #0066ff, #00f5ff);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 20px rgba(0, 102, 255, 0.3);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.5);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 120px 3rem 5rem;
+        }
+
+        .problem-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .problem-title {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00f5ff, #0066ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .problem-meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: rgba(0, 102, 255, 0.1);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 20px;
+            font-size: 0.95rem;
+        }
+
+        .difficulty-easy {
+            background: rgba(46, 213, 115, 0.2);
+            border-color: #2ed573;
+            color: #2ed573;
+        }
+
+        .difficulty-medium {
+            background: rgba(255, 159, 67, 0.2);
+            border-color: #ff9f43;
+            color: #ff9f43;
+        }
+
+        .difficulty-hard {
+            background: rgba(255, 71, 87, 0.2);
+            border-color: #ff4757;
+            color: #ff4757;
+        }
+
+        .content-section {
+            background: linear-gradient(145deg, rgba(20, 20, 20, 0.8), rgba(30, 30, 30, 0.6));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.05), rgba(0, 245, 255, 0.05));
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .content-section:hover::before {
+            opacity: 1;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: #00f5ff;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-content {
+            color: #b0b0b0;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-content p {
+            margin-bottom: 1rem;
+        }
+
+        .section-content ul, .section-content ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .example-box {
+            background: rgba(0, 102, 255, 0.1);
+            border-left: 4px solid #00f5ff;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .example-label {
+            color: #00f5ff;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            background: rgba(0, 245, 255, 0.1);
+            padding: 0.2rem 0.6rem;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            color: #00f5ff;
+        }
+
+        pre {
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: #e0e0e0;
+        }
+
+        .hint-box {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(0, 245, 255, 0.1));
+            border: 1px solid rgba(138, 43, 226, 0.4);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .hint-title {
+            color: #ba55d3;
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .solution-toggle {
+            background: linear-gradient(135deg, #0066ff, #00f5ff);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 20px rgba(0, 102, 255, 0.3);
+            margin: 2rem 0;
+        }
+
+        .solution-toggle:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.5);
+        }
+
+        .solution-content {
+            display: none;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .solution-content.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 100px 1.5rem 3rem;
+            }
+
+            .problem-title {
+                font-size: 2rem;
+            }
+
+            .content-section {
+                padding: 2rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            nav {
+                padding: 0 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">{ DinamicGreedy }</a>
+            <a href="index.html#probleme" class="back-btn">
+                ← Înapoi la Probleme
+            </a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- Problem Header -->
+        <div class="problem-header">
+            <h1 class="problem-title">💵 Problema Bancnotelor</h1>
+            <div class="problem-meta">
+                <div class="meta-item difficulty-easy">
+                    <span>📊</span>
+                    <span>Dificultate: Ușor</span>
+                </div>
+                <div class="meta-item">
+                    <span>🎯</span>
+                    <span>Tip: Greedy</span>
+                </div>
+                <div class="meta-item">
+                    <span>⏱️</span>
+                    <span>Timp: 15-20 min</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enunț -->
+        <div class="content-section">
+            <h2 class="section-title">📝 Enunțul Problemei</h2>
+            <div class="section-content">
+                <p>
+                    Se citesc 3 numere naturale <code>S</code>, <code>n</code> și <code>e</code>, cu următoarele semnificații:
+                </p>
+                <ul>
+                    <li><code>S</code> este o sumă de bani care trebuie plătită</li>
+                    <li><code>n</code> reprezintă numărul maxim de puteri ale lui <code>e</code></li>
+                    <li><code>e</code> este baza pentru generarea valorilor bancnotelor</li>
+                </ul>
+                <p>
+                    Bancnotele disponibile au valori reprezentate de puterile lui <code>e</code> de la 1 la <code>n</code>: 
+                    <strong>e<sup>1</sup>, e<sup>2</sup>, e<sup>3</sup>, ..., e<sup>n</sup></strong>
+                </p>
+                <p>
+                    Să se afișeze modalitatea de plată folosind un număr minim de bancnote de tipurile precizate. 
+                    La final se afișează numărul total de bancnote folosite.
+                </p>
+            </div>
+        </div>
+
+        <!-- Date de Intrare/Ieșire -->
+        <div class="content-section">
+            <h2 class="section-title">📥 Date de Intrare și Ieșire</h2>
+            <div class="section-content">
+                <p><strong>Intrare:</strong> (fișierul <code>pro.txt</code>)</p>
+                <ul>
+                    <li><code>S</code> - suma de plată (număr natural)</li>
+                    <li><code>n</code> - puterea maximă</li>
+                    <li><code>e</code> - baza pentru generarea bancnotelor</li>
+                </ul>
+                
+                <p><strong>Ieșire:</strong> (consolă)</p>
+                <ul>
+                    <li>Pentru fiecare tip de bancnotă folosită: numărul de bancnote și valoarea lor</li>
+                    <li>Numărul total de bancnote folosite</li>
+                </ul>
+
+                <div class="example-box">
+                    <div class="example-label">Exemplu 1:</div>
+                    <strong>Intrare:</strong> S = 43, n = 4, e = 2<br>
+                    <strong>Bancnote disponibile:</strong> 2<sup>1</sup>=2, 2<sup>2</sup>=4, 2<sup>3</sup>=8, 2<sup>4</sup>=16<br>
+                    <strong>Ieșire:</strong><br>
+                    2 bancnote de valoarea 16<br>
+                    1 bancnote de valoarea 8<br>
+                    1 bancnote de valoarea 2<br>
+                    1 bancnote de valoarea 1<br>
+                    5
+                </div>
+
+                <div class="example-box">
+                    <div class="example-label">Exemplu 2:</div>
+                    <strong>Intrare:</strong> S = 100, n = 3, e = 5<br>
+                    <strong>Bancnote disponibile:</strong> 5<sup>1</sup>=5, 5<sup>2</sup>=25, 5<sup>3</sup>=125<br>
+                    <strong>Ieșire:</strong><br>
+                    4 bancnote de valoarea 25<br>
+                    4
+                </div>
+            </div>
+        </div>
+
+        <!-- Cerințe -->
+        <div class="content-section">
+            <h2 class="section-title">✅ Cerințe</h2>
+            <div class="section-content">
+                <ol>
+                    <li>Calculați puterile lui <code>e</code> de la 1 la <code>n</code></li>
+                    <li>Găsiți cea mai mare putere care nu depășește suma <code>S</code></li>
+                    <li>Aplicați algoritmul Greedy: folosiți cât mai multe bancnote de valoare maximă</li>
+                    <li>Afișați detaliat bancnotele folosite în ordine descrescătoare</li>
+                    <li>Afișați numărul total de bancnote</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Hint -->
+        <div class="hint-box">
+            <div class="hint-title">💡 Hint</div>
+            <div class="section-content">
+                <p>
+                    Pentru a găsi puterea maximă care nu depășește <code>S</code>, poți înmulți repetat <code>e</code> 
+                    cu el însuși până când depășești <code>S</code> sau ajungi la puterea <code>n</code>. 
+                    Apoi folosește bancnota de valoare maximă cât de multe ori poți (împărțire întreagă).
+                </p>
+            </div>
+        </div>
+
+        <!-- Abordare -->
+        <div class="content-section">
+            <h2 class="section-title">🔍 Abordarea Greedy</h2>
+            <div class="section-content">
+                <p>Problema se rezolvă folosind strategia Greedy în următorii pași:</p>
+                <ol>
+                    <li><strong>Calculare putere maximă:</strong> Găsim cea mai mare valoare e<sup>k</sup> care nu depășește S</li>
+                    <li><strong>Alegere locală optimă:</strong> Folosim bancnota de valoare maximă de câte ori este posibil (S / p)</li>
+                    <li><strong>Actualizare:</strong> Scădem suma folosită și trecem la bancnota următoare (p / e)</li>
+                    <li><strong>Repetare:</strong> Continuăm până când suma devine 0</li>
+                </ol>
+                
+                <p><strong>De ce funcționează Greedy?</strong></p>
+                <p>
+                    Deoarece fiecare bancnotă este o putere a lui <code>e</code>, sistemul are proprietatea că 
+                    o bancnotă mai mare poate fi "descompusă" în exact <code>e</code> bancnote mai mici. 
+                    Astfel, alegerea greedy de a folosi bancnota maximă garantează numărul minim de bancnote.
+                </p>
+            </div>
+        </div>
+
+        <!-- Soluție Button -->
+        <button class="solution-toggle" onclick="toggleSolution()">
+            🔓 Afișează Soluția
+        </button>
+
+        <!-- Soluție (Hidden) -->
+        <div id="solution" class="solution-content">
+            <div class="content-section">
+                <h2 class="section-title">💻 Soluția în C++</h2>
+                <div class="section-content">
+                    <pre><code>#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+using namespace std;
+
+int main() {
+    ifstream f("pro.txt");
+    int S, n, e, t = 0;
+    f >> S >> n >> e;
+
+    int p = 1, k = 0;
+    while (p * e <= S && k < n) {
+        p = p * e;
+        k++;
+    }
+   
+    while (S > 0) {
+        if (S >= p) {
+            cout << S / p << " bancnote de valoarea " << p << endl;
+            t = t + S / p;  
+            S = S % p;     
+        }
+        p = p / e;  
+    }
+    
+    cout << t; 
+    
+    return 0;
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <h2 class="section-title">📊 Explicație Pas cu Pas</h2>
+                <div class="section-content">
+                    <p><strong>Pentru S = 43, n = 4, e = 2:</strong></p>
+                    <ol>
+                        <li><strong>Calculăm bancnotele disponibile:</strong> 2, 4, 8, 16</li>
+                        <li><strong>Găsim puterea maximă:</strong> p = 16 (deoarece 16 ≤ 43, dar 32 > 43)</li>
+                        <li><strong>Folosim 16:</strong> 43 / 16 = 2 bancnote, rest = 43 % 16 = 11</li>
+                        <li><strong>Folosim 8:</strong> 11 / 8 = 1 bancnotă, rest = 11 % 8 = 3</li>
+                        <li><strong>Folosim 4:</strong> 3 / 4 = 0 bancnote, rest = 3</li>
+                        <li><strong>Folosim 2:</strong> 3 / 2 = 1 bancnotă, rest = 3 % 2 = 1</li>
+                        <li><strong>Folosim 1:</strong> 1 / 1 = 1 bancnotă, rest = 0</li>
+                        <li><strong>Total:</strong> 2 + 1 + 1 + 1 = 5 bancnote</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <h2 class="section-title">📊 Complexitate</h2>
+                <div class="section-content">
+                    <ul>
+                        <li><strong>Timp:</strong> O(n), unde n este numărul de puteri calculate</li>
+                        <li><strong>Spațiu:</strong> O(1), folosim doar câteva variabile</li>
+                    </ul>
+                    <p>
+                        Algoritmul este extrem de eficient deoarece parcurgem fiecare valoare de bancnotă 
+                        exact o singură dată, de la cea mai mare la cea mai mică.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSolution() {
+            const solution = document.getElementById('solution');
+            const button = document.querySelector('.solution-toggle');
+            
+            solution.classList.toggle('active');
+            
+            if (solution.classList.contains('active')) {
+                button.textContent = '🔒 Ascunde Soluția';
+                solution.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                button.textContent = '🔓 Afișează Soluția';
+            }
+        }
+    </script>
+</body>
+</html>

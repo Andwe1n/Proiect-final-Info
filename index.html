@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arta optimizarii:Programare Dinamica si Greedy</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: #0a0a0a;
+        color: #e0e0e0;
+        overflow-x: hidden;
+        position: relative;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+            circle at 20% 30%,
+            rgba(0, 102, 255, 0.15) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 20%,
+            rgba(0, 245, 255, 0.15) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 40% 70%,
+            rgba(138, 43, 226, 0.1) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 90% 80%,
+            rgba(255, 0, 128, 0.1) 0%,
+            transparent 50%
+          ),
+          linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+        z-index: -1;
+        animation: meshMove 20s ease-in-out infinite;
+      }
+
+      @keyframes meshMove {
+        0%,
+        100% {
+          background-position: 0% 0%, 100% 0%, 0% 100%, 100% 100%, 0% 0%;
+        }
+        25% {
+          background-position: 100% 0%, 0% 100%, 100% 0%, 0% 100%, 25% 25%;
+        }
+        50% {
+          background-position: 100% 100%, 0% 0%, 100% 100%, 0% 0%, 50% 50%;
+        }
+        75% {
+          background-position: 0% 100%, 100% 0%, 0% 100%, 100% 0%, 75% 75%;
+        }
+      }
+      body::after {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: radial-gradient(
+            2px 2px at 20% 30%,
+            rgba(0, 245, 255, 0.3),
+            transparent
+          ),
+          radial-gradient(
+            2px 2px at 60% 70%,
+            rgba(0, 102, 255, 0.3),
+            transparent
+          ),
+          radial-gradient(
+            1px 1px at 50% 50%,
+            rgba(0, 245, 255, 0.2),
+            transparent
+          ),
+          radial-gradient(
+            1px 1px at 80% 10%,
+            rgba(0, 102, 255, 0.2),
+            transparent
+          ),
+          radial-gradient(
+            2px 2px at 90% 60%,
+            rgba(138, 43, 226, 0.2),
+            transparent
+          ),
+          radial-gradient(
+            1px 1px at 30% 80%,
+            rgba(0, 245, 255, 0.2),
+            transparent
+          );
+        background-size: 200% 200%, 150% 150%, 300% 300%, 250% 250%, 180% 180%,
+          220% 220%;
+        background-position: 0% 0%, 100% 100%, 50% 50%, 0% 100%, 100% 0%, 50% 0%;
+        animation: particlesFloat 15s ease-in-out infinite;
+        z-index: -1;
+        pointer-events: none;
+      }
+
+      @keyframes particlesFloat {
+        0%,
+        100% {
+          background-position: 0% 0%, 100% 100%, 50% 50%, 0% 100%, 100% 0%,
+            50% 0%;
+          opacity: 0.3;
+        }
+        50% {
+          background-position: 100% 100%, 0% 0%, 100% 0%, 100% 0%, 0% 100%,
+            0% 100%;
+          opacity: 0.6;
+        }
+      }
+      body {
+        --mouse-x: 50%;
+        --mouse-y: 50%;
+      }
+
+      body::before {
+        background: radial-gradient(
+            circle at var(--mouse-x) var(--mouse-y),
+            rgba(0, 245, 255, 0.2) 0%,
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 20% 30%,
+            rgba(0, 102, 255, 0.15) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 20%,
+            rgba(0, 245, 255, 0.15) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 40% 70%,
+            rgba(138, 43, 226, 0.1) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 90% 80%,
+            rgba(255, 0, 128, 0.1) 0%,
+            transparent 50%
+          ),
+          linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+        transition: background 0.3s ease;
+      }
+
+      header {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background: rgba(10, 10, 10, 0.8);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 1000;
+        padding: 1.5rem 0;
+      }
+
+      nav {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 3rem;
+      }
+
+      .logo {
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #00f5ff, #0066ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      nav ul {
+        display: flex;
+        list-style: none;
+        gap: 3rem;
+      }
+
+      nav a {
+        color: #e0e0e0;
+        text-decoration: none;
+        font-weight: 500;
+        position: relative;
+        transition: color 0.3s;
+      }
+
+      nav a::after {
+        content: "";
+        position: absolute;
+        bottom: -5px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #00f5ff, #0066ff);
+        transition: width 0.3s;
+      }
+
+      nav a:hover {
+        color: #00f5ff;
+      }
+
+      nav a:hover::after {
+        width: 100%;
+      }
+
+      .hero {
+        margin-top: 80px;
+        min-height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+          circle at 50% 50%,
+          rgba(115, 228, 228, 0.1),
+          transparent 50%
+        );
+        animation: pulse 8s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.5;
+        }
+
+        50% {
+          transform: scale(1.1);
+          opacity: 0.8;
+        }
+      }
+
+      .hero-content {
+        text-align: center;
+        z-index: 1;
+        padding: 3rem;
+      }
+
+      .hero h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #00f5ff, #0066ff, #00f5ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        background-size: 200% auto;
+        animation: gradient 3s linear infinite;
+      }
+
+      @keyframes gradient {
+        0% {
+          background-position: 0% center;
+        }
+
+        100% {
+          background-position: 200% center;
+        }
+      }
+
+      .hero p {
+        font-size: 1.4rem;
+        color: #a0a0a0;
+        margin-bottom: 3rem;
+      }
+
+      .hero-btn {
+        display: inline-block;
+        padding: 1.2rem 3rem;
+        background: linear-gradient(135deg, #0066ff, #00f5ff);
+        color: white;
+        text-decoration: none;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: transform 0.3s, box-shadow 0.3s;
+        box-shadow: 0 10px 40px rgba(0, 102, 255, 0.3);
+      }
+
+      .hero-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 60px rgba(0, 102, 255, 0.5);
+      }
+
+      .section {
+        padding: 8rem 3rem;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .section-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 3rem;
+        text-align: center;
+        position: relative;
+      }
+
+      .section-title::after {
+        content: "";
+        position: absolute;
+        bottom: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 4px;
+        background: linear-gradient(90deg, #00f5ff, #0066ff);
+        border-radius: 2px;
+      }
+
+      .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2.5rem;
+        margin-top: 4rem;
+      }
+
+      .card {
+        background: linear-gradient(
+          145deg,
+          rgba(20, 20, 20, 0.8),
+          rgba(30, 30, 30, 0.6)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 3rem;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 102, 255, 0.1),
+          rgba(0, 245, 255, 0.1)
+        );
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+
+      .card:hover {
+        transform: translateY(-15px);
+        border-color: rgba(0, 245, 255, 0.5);
+        box-shadow: 0 20px 60px rgba(0, 102, 255, 0.3);
+      }
+
+      .card:hover::before {
+        opacity: 1;
+      }
+
+      .card-icon {
+        font-size: 3rem;
+        margin-bottom: 1.5rem;
+        display: block;
+      }
+
+      .card h3 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+        color: #00f5ff;
+        position: relative;
+        z-index: 1;
+      }
+
+      .card p {
+        color: #b0b0b0;
+        line-height: 1.8;
+        position: relative;
+        z-index: 1;
+      }
+
+      .card ul {
+        list-style: none;
+        margin-top: 1.5rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .card li {
+        color: #b0b0b0;
+        margin-bottom: 0.8rem;
+        padding-left: 1.5rem;
+        position: relative;
+        cursor: pointer;
+        transition: color 0.3s, transform 0.3s;
+      }
+
+      .card li:hover {
+        color: #00f5ff;
+        transform: translateX(5px);
+      }
+
+      .card li::before {
+        content: "▹";
+        position: absolute;
+        left: 0;
+        color: #00f5ff;
+        font-weight: bold;
+      }
+
+      .team-card {
+        text-align: center;
+      }
+
+      .team-avatar {
+        font-size: 5rem;
+        margin-bottom: 1.5rem;
+        filter: grayscale(20%);
+        transition: transform 0.3s, filter 0.3s;
+      }
+
+      .team-card:hover .team-avatar {
+        transform: scale(1.1);
+        filter: grayscale(0%);
+      }
+
+      .team-role {
+        color: #00f5ff;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+      }
+
+      /* Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-content {
+        background: linear-gradient(
+          145deg,
+          rgba(20, 20, 20, 0.95),
+          rgba(30, 30, 30, 0.9)
+        );
+        margin: 10% auto;
+        padding: 3rem;
+        border: 2px solid rgba(0, 245, 255, 0.3);
+        border-radius: 25px;
+        width: 90%;
+        max-width: 600px;
+        position: relative;
+        animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 30px 80px rgba(0, 102, 255, 0.4);
+      }
+
+      @keyframes slideDown {
+        from {
+          transform: translateY(-100px);
+          opacity: 0;
+        }
+
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .modal-content::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 102, 255, 0.1),
+          rgba(0, 245, 255, 0.1)
+        );
+        border-radius: 25px;
+        z-index: -1;
+      }
+
+      .close-modal {
+        color: #00f5ff;
+        float: right;
+        font-size: 2.5rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.3s, color 0.3s;
+        line-height: 1;
+      }
+
+      .close-modal:hover {
+        color: #0066ff;
+        transform: rotate(90deg);
+      }
+
+      .modal-header {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #00f5ff;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid rgba(0, 245, 255, 0.3);
+      }
+
+      .modal-body {
+        color: #e0e0e0;
+        line-height: 1.8;
+        font-size: 1.1rem;
+      }
+
+      footer {
+        background: rgba(10, 10, 10, 0.9);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 3rem;
+        text-align: center;
+        color: #808080;
+      }
+
+      @media (max-width: 768px) {
+        nav ul {
+          gap: 1.5rem;
+        }
+
+        .hero h1 {
+          font-size: 3rem;
+        }
+
+        .hero p {
+          font-size: 1.1rem;
+        }
+
+        .section {
+          padding: 4rem 1.5rem;
+        }
+
+        .section-title {
+          font-size: 2rem;
+        }
+
+        .cards-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .modal-content {
+          margin: 20% auto;
+          width: 95%;
+          padding: 2rem;
+        }
+
+        .modal-header {
+          font-size: 1.5rem;
+        }
+
+        .modal-body {
+          font-size: 1rem;
+        }
+      }
+      /* Problems Grid Styles */
+      .problems-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2rem;
+      }
+
+      .problem-card {
+        background: linear-gradient(
+          145deg,
+          rgba(20, 20, 20, 0.8),
+          rgba(30, 30, 30, 0.6)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 2.5rem;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      .problem-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 102, 255, 0.1),
+          rgba(0, 245, 255, 0.1)
+        );
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+
+      .problem-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        border-color: rgba(0, 245, 255, 0.6);
+        box-shadow: 0 25px 70px rgba(0, 102, 255, 0.4);
+      }
+
+      .problem-card:hover::before {
+        opacity: 1;
+      }
+
+      .problem-difficulty {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        z-index: 2;
+      }
+
+      .problem-difficulty.easy {
+        background: rgba(46, 213, 115, 0.2);
+        color: #2ed573;
+        border: 1px solid #2ed573;
+      }
+
+      .problem-difficulty.medium {
+        background: rgba(255, 159, 67, 0.2);
+        color: #ff9f43;
+        border: 1px solid #ff9f43;
+      }
+
+      .problem-difficulty.hard {
+        background: rgba(255, 71, 87, 0.2);
+        color: #ff4757;
+        border: 1px solid #ff4757;
+      }
+
+      .problem-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1.5rem;
+        filter: grayscale(30%);
+        transition: all 0.3s;
+        position: relative;
+        z-index: 1;
+      }
+
+      .problem-card:hover .problem-icon {
+        filter: grayscale(0%);
+        transform: scale(1.1) rotate(5deg);
+      }
+
+      .problem-card h4 {
+        font-size: 1.5rem;
+        color: #00f5ff;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .problem-card p {
+        color: #b0b0b0;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .problem-tags {
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
+      }
+
+      .tag {
+        background: rgba(0, 102, 255, 0.2);
+        color: #00f5ff;
+        padding: 0.4rem 1rem;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: 1px solid rgba(0, 245, 255, 0.3);
+      }
+
+      @media (max-width: 768px) {
+        .problems-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      /* Venn Diagram Styles */
+.venn-container {
+    margin: 4rem 0;
+}
+
+.venn-diagram {
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+    margin: 0 auto 3rem;
+    display: block;
+}
+
+.venn-circle {
+    fill-opacity: 0.3;
+    stroke-width: 2;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.greedy-circle {
+    fill: #2ed573;
+    stroke: #2ed573;
+}
+
+.dp-circle {
+    fill: #ba55d3;
+    stroke: #ba55d3;
+}
+
+.venn-circle:hover {
+    fill-opacity: 0.5;
+    stroke-width: 3;
+}
+
+.venn-title {
+    font-size: 24px;
+    font-weight: 700;
+    text-anchor: middle;
+}
+
+.greedy-text {
+    fill: #2ed573;
+}
+
+.dp-text {
+    fill: #ba55d3;
+}
+
+.common-text {
+    fill: #00f5ff;
+}
+
+.venn-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.venn-section {
+    background: linear-gradient(145deg, rgba(20, 20, 20, 0.8), rgba(30, 30, 30, 0.6));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 2rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.venn-section:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 102, 255, 0.3);
+}
+
+.greedy-section {
+    border-top: 3px solid #2ed573;
+}
+
+.common-section {
+    border-top: 3px solid #00f5ff;
+}
+
+.dp-section {
+    border-top: 3px solid #ba55d3;
+}
+
+.venn-section h3 {
+    color: #00f5ff;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.venn-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.venn-section li {
+    color: #b0b0b0;
+    padding: 0.8rem;
+    margin-bottom: 0.5rem;
+    background: rgba(0, 102, 255, 0.05);
+    border-radius: 8px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.venn-section li:hover {
+    background: rgba(0, 102, 255, 0.15);
+    transform: translateX(5px);
+    color: #00f5ff;
+}
+
+.venn-section li::before {
+    content: '▹';
+    color: #00f5ff;
+    margin-right: 0.5rem;
+    font-weight: bold;
+}
+
+/* Tooltip */
+.venn-section li[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.95);
+    color: #00f5ff;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    z-index: 1000;
+    border: 1px solid rgba(0, 245, 255, 0.3);
+    margin-bottom: 0.5rem;
+}
+
+/* Comparison Grid */
+.comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin: 4rem 0;
+}
+
+.comparison-card {
+    background: linear-gradient(145deg, rgba(20, 20, 20, 0.8), rgba(30, 30, 30, 0.6));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.comparison-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 102, 255, 0.3);
+}
+
+.comparison-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.comparison-card h3 {
+    color: #00f5ff;
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+}
+
+.comparison-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.bar-container {
+    text-align: left;
+}
+
+.bar-container span {
+    display: block;
+    color: #b0b0b0;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.bar {
+    height: 25px;
+    border-radius: 12px;
+    transition: width 1s ease, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.greedy-bar {
+    background: linear-gradient(90deg, #26de81, #2ed573);
+    box-shadow: 0 0 20px rgba(46, 213, 115, 0.5);
+}
+
+.dp-bar {
+    background: linear-gradient(90deg, #9b59b6, #ba55d3);
+    box-shadow: 0 0 20px rgba(186, 85, 211, 0.5);
+}
+
+/* When to Use Section */
+.when-to-use {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 3rem;
+    margin-top: 4rem;
+}
+
+.use-card {
+    background: linear-gradient(145deg, rgba(20, 20, 20, 0.8), rgba(30, 30, 30, 0.6));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.use-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+}
+
+.greedy-use::before {
+    background: linear-gradient(90deg, #26de81, #2ed573);
+}
+
+.dp-use::before {
+    background: linear-gradient(90deg, #9b59b6, #ba55d3);
+}
+
+.use-card h3 {
+    color: #00f5ff;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+}
+
+.use-card ul {
+    list-style: none;
+    padding: 0;
+}
+
+.use-card li {
+    color: #b0b0b0;
+    padding: 1rem;
+    margin-bottom: 0.8rem;
+    background: rgba(0, 102, 255, 0.05);
+    border-radius: 10px;
+    border-left: 3px solid #00f5ff;
+    transition: all 0.3s;
+}
+
+.use-card li:hover {
+    background: rgba(0, 102, 255, 0.15);
+    transform: translateX(10px);
+    border-left-width: 5px;
+}
+
+@media (max-width: 768px) {
+    .venn-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .comparison-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .when-to-use {
+        grid-template-columns: 1fr;
+    }
+}
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <nav>
+        <div class="logo">{ DinamicGreedy }</div>
+        <ul>
+          <li><a href="#greedy">Greedy</a></li>
+          <li><a href="#dinamica">Dinamică</a></li>
+          <li><a href="#probleme">Probleme</a></li>
+          <li><a href="#paralela">Paralela</a></li>
+          <li><a href="#echipa">Echipa</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="hero-bg"></div>
+      <div class="hero-content">
+        <h1>Arta optimizarii:Programare Dinamica si Greedy</h1>
+        <p>Aprofundarea tehnicilor de programare</p>
+        <a href="#greedy" class="hero-btn">Începe explorarea</a>
+      </div>
+    </section>
+
+    <!--PROGRAMARE GREEDY-->
+
+    <section class="section" id="greedy">
+      <h2 class="section-title">Programare Greedy</h2>
+      <div class="cards-grid">
+        <div class="card">
+          <span class="card-icon">🎯</span>
+          <h3>Ce este Greedy?</h3>
+          <p>
+            Algoritmul Greedy gaseste solutia incremental,construind solutii
+            acceptabile care se tot extind pe parcurs ,cea mai buna alegere la
+            acel moment urmeaza sa devina solutia finala == Optim global.
+          </p>
+        </div>
+        <div class="card">
+          <span class="card-icon">⚡</span>
+          <h3>Caracteristici</h3>
+          <ul>
+            <li data-modal="caracteristica1">Strategia de optim local</li>
+            <li data-modal="caracteristica2">
+              Construirea iterativa a solutiei
+            </li>
+            <li data-modal="caracteristica3">Simplitate si eficienta</li>
+            <li data-modal="caracteristica4">
+              Soluție rapidă dar nu întotdeauna optimă
+            </li>
+            <li data-modal="caracteristica5">
+              Necesita demonstratie de corectitudine
+            </li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="card-icon">💡</span>
+          <h3>Utilizari Practice</h3>
+          <ul>
+            <li data-modal="utilizare1">Algoritmi de rutare in retele</li>
+            <li data-modal="utilizare2">Compresia datelor</li>
+            <li data-modal="utilizare3">
+              Planificarea activitatilor si evenimentelor
+            </li>
+            <li data-modal="utilizare4">Schimbarea restului</li>
+            <li data-modal="utilizare5">Retele de transport si utilitati</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="card-icon">💡</span>
+          <h3>Utilizari Teoretice</h3>
+          <ul>
+            <li data-modal="gt1">Problema selectiei activitatilor</li>
+            <li data-modal="gt2">Codificarea Huffman</li>
+            <li data-modal="gt3">Schimbarea de monede</li>
+            <li data-modal="gt4">Problema Sumei maxime</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!--PROGRAMARE DINAMICA-->
+
+    <section class="section" id="dinamica">
+      <h2 class="section-title">Programare Dinamică</h2>
+      <div class="cards-grid">
+        <div class="card">
+          <span class="card-icon">🧩</span>
+          <h3>Ce este PD?</h3>
+          <p>
+            Este o tehnica folosita la problemele de optimizare precum si la
+            cele de numarare. Nu este vorba despre un algoritm predefinit, ci
+            mai mult despre un principiu. Codul arata diferit de la o problema
+            la alta, aici dificultatea este sa "te prinzi" de implementarea
+            problemei, aceasta fiind adesea mult mai usoara decat pare. O
+            caracteristica principala a programarii dinamice este ca starile
+            pentru care se doreste obtinerea optimului(din una in alta) sa poata
+            fi imaginate ca un graf aciclic.
+          </p>
+        </div>
+        <div class="card">
+          <span class="card-icon">🔄</span>
+          <h3>Principii Fundamentale</h3>
+          <ul>
+            <li data-modal="principiu1">Principiul optimalitatii</li>
+            <li data-modal="principiu2">Subproblemele care sa suprapun</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="card-icon">🎓</span>
+          <h3>Utilizari Practice</h3>
+          <ul>
+            <li data-modal="pd_utilizare1">Cercetarea Operationala</li>
+            <li data-modal="pd_utilizare2">Bioinformatica</li>
+            <li data-modal="pd_utilizare3">
+              Inteligenta artificiala si invatarea automata
+            </li>
+            <li data-modal="pd_utilizare4">Inginerie si navigatie</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="card-icon">🎓</span>
+          <h3>Utilizari teoretice</h3>
+          <ul>
+            <li data-modal="pt_utilizare1">Problema rucsacului</li>
+            <li data-modal="pt_utilizare2">Cel mai lung subsir comun</li>
+            <li data-modal="pt_utilizare3">Cel mai lung subsir crescator</li>
+            <li data-modal="pt_utilizare4">
+              Problema inmultirii in lant a matricelor
+            </li>
+            <li data-modal="pt_utilizare5">Secventa Fibonacci</li>
+            <li data-modal="pt_utilizare6">Suma maxima de subsir</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!--PROBLEME DE REZOLVAT-->
+    <section class="section" id="probleme">
+      <h2 class="section-title">Probleme de Rezolvat</h2>
+
+      <!-- Greedy Problems -->
+      <div style="margin-bottom: 5rem">
+        <h3
+          style="
+            font-size: 2rem;
+            color: #00f5ff;
+            margin-bottom: 2rem;
+            text-align: left;
+          "
+        >
+          🎯 Probleme Greedy
+        </h3>
+        <div class="problems-grid">
+          <a href="problemabancnote.html" class="problem-card">
+            <div class="problem-difficulty easy">Ușor</div>
+            <div class="problem-icon">💵</div>
+            <h4>Problema Bancnotelor</h4>
+            <p>
+              Determinați numărul minim de bancnote necesare pentru a forma o
+              sumă dată.
+            </p>
+            <div class="problem-tags">
+              <span class="tag">Greedy</span>
+            </div>
+          </a>
+
+          <a href="problemapachetemulte.html" class="problem-card">
+            <div class="problem-difficulty hard">Dificil</div>
+            <div class="problem-icon">📦</div>
+            <h4>Pachete Multe</h4>
+            <p>
+              Optimizați încărcarea pachetelor în camioane pentru a minimiza
+              numărul de curse.
+            </p>
+            <div class="problem-tags">
+              <span class="tag">Greedy</span>
+              <span class="tag">Optimizare</span>
+            </div>
+          </a>
+        </div>
+      </div>
+         
+      <a href="problemacomis-voiajorului.html" class="problem-card">
+            <div class="problem-difficulty hard">Dificil</div>
+            <div class="problem-icon">🗺️</div>
+            <h4>Comis-Voiajorul</h4>
+            <p>
+              Determinați traseul minim pentru a vizita toate orașele exact o
+              dată.
+            </p>
+            <div class="problem-tags">
+              <span class="tag">Greedy</span>
+              <span class="tag">TSP</span>
+            </div>
+          </a>
+        </div>
+      </div>
+      <!-- Dynamic Programming Problems -->
+      <div>
+        <h3
+          style="
+            font-size: 2rem;
+            color: #00f5ff;
+            margin-bottom: 2rem;
+            text-align: left;
+          "
+        >
+          🧩 Probleme Programare Dinamică
+        </h3>
+        <div class="problems-grid">
+          <a href="problemaarici.html" class="problem-card">
+            <div class="problem-difficulty easy">Ușor</div>
+            <div class="problem-icon">🦔</div>
+            <h4>Problema Ariciului</h4>
+            <p>
+              Găsiți drumul optim pentru arici să colecteze merele cu
+              constrângeri speciale.
+            </p>
+            <div class="problem-tags">
+              <span class="tag">DP</span>
+              <span class="tag">Matrice</span>
+            </div>
+          </a>
+
+          <a href="problemarucsac-halloween.html" class="problem-card">
+            <div class="problem-difficulty medium">Mediu</div>
+            <div class="problem-icon">🎒</div>
+            <h4>Rucsac Halloween</h4>
+            <p>
+              Maximizați valoarea dulciurilor colectate având o capacitate
+              limitată a rucsacului.
+            </p>
+            <div class="problem-tags">
+              <span class="tag">DP</span>
+              <span class="tag">Knapsack</span>
+            </div>
+          </a>
+         </section>
+
+ <!--PARALELA-->
+   <!--PARALELA GREEDY VS DP-->
+<section class="section" id="paralela">
+    <h2 class="section-title">Comparație: Greedy vs Programare Dinamică</h2>
+    
+    <div class="venn-container">
+        <svg viewBox="0 0 800 500" class="venn-diagram">
+            <!-- Greedy Circle -->
+            <circle cx="280" cy="250" r="180" class="venn-circle greedy-circle" />
+            
+            <!-- DP Circle -->
+            <circle cx="520" cy="250" r="180" class="venn-circle dp-circle" />
+            
+            <!-- Labels -->
+            <text x="180" y="150" class="venn-title greedy-text">Greedy</text>
+            <text x="580" y="150" class="venn-title dp-text">PD</text>
+            <text x="400" y="240" class="venn-title common-text">Comun</text>
+        </svg>
+        
+        <div class="venn-content">
+            <!-- Greedy Specific -->
+            <div class="venn-section greedy-section">
+                <h3>🎯 Doar Greedy</h3>
+                <ul>
+                    <li data-tooltip="Alege mereu cea mai bună opțiune locală">Optimizare locală</li>
+                    <li data-tooltip="Nu revine asupra deciziilor luate">Fără backtracking</li>
+                    <li data-tooltip="O singură trecere prin date">Single-pass algorithm</li>
+                    <li data-tooltip="Foarte rapid, dar nu garantează optimul">Rapid dar euristic</li>
+                    <li data-tooltip="Sortare, Dijkstra, Huffman">Algoritmi de rutare</li>
+                </ul>
+            </div>
+            
+            <!-- Common -->
+            <div class="venn-section common-section">
+                <h3>🔄 Caracteristici Comune</h3>
+                <ul>
+                    <li data-tooltip="Ambele rezolvă probleme de optimizare">Probleme de optimizare</li>
+                    <li data-tooltip="Soluția finală depinde de subsoluții">Substructură optimă</li>
+                    <li data-tooltip="Împart problema în subprobleme">Descompunere</li>
+                    <li data-tooltip="Evită recalculări inutile">Eficiență computațională</li>
+                </ul>
+            </div>
+            
+            <!-- DP Specific -->
+            <div class="venn-section dp-section">
+                <h3>🧩 Doar Programare Dinamică</h3>
+                <ul>
+                    <li data-tooltip="Aceleași subprobleme apar de mai multe ori">Suprapunerea subproblemelor</li>
+                    <li data-tooltip="Salvează rezultatele în memorie">Memorizare (caching)</li>
+                    <li data-tooltip="Analizează toate posibilitățile">Explorare exhaustivă</li>
+                    <li data-tooltip="Garantează soluția optimă">Corectitudine garantată</li>
+                    <li data-tooltip="Fibonacci, Knapsack, LCS">Probleme clasice DP</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div class="comparison-grid">
+        <div class="comparison-card">
+            <div class="comparison-icon">⚡</div>
+            <h3>Viteză de Execuție</h3>
+            <div class="comparison-bars">
+                <div class="bar-container">
+                    <span>Greedy</span>
+                    <div class="bar greedy-bar" style="width: 95%"></div>
+                </div>
+                <div class="bar-container">
+                    <span>DP</span>
+                    <div class="bar dp-bar" style="width: 65%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="comparison-card">
+            <div class="comparison-icon">✓</div>
+            <h3>Corectitudine</h3>
+            <div class="comparison-bars">
+                <div class="bar-container">
+                    <span>Greedy</span>
+                    <div class="bar greedy-bar" style="width: 50%"></div>
+                </div>
+                <div class="bar-container">
+                    <span>DP</span>
+                    <div class="bar dp-bar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="comparison-card">
+            <div class="comparison-icon">💾</div>
+            <h3>Memorie Folosită</h3>
+            <div class="comparison-bars">
+                <div class="bar-container">
+                    <span>Greedy</span>
+                    <div class="bar greedy-bar" style="width: 30%"></div>
+                </div>
+                <div class="bar-container">
+                    <span>DP</span>
+                    <div class="bar dp-bar" style="width: 85%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="comparison-card">
+            <div class="comparison-icon">🎓</div>
+            <h3>Dificultate Implementare</h3>
+            <div class="comparison-bars">
+                <div class="bar-container">
+                    <span>Greedy</span>
+                    <div class="bar greedy-bar" style="width: 40%"></div>
+                </div>
+                <div class="bar-container">
+                    <span>DP</span>
+                    <div class="bar dp-bar" style="width: 80%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- When to Use -->
+    <div class="when-to-use">
+        <div class="use-card greedy-use">
+            <h3>🎯 Când folosești Greedy?</h3>
+            <ul>
+                <li>✅ Problema are proprietatea alegerii greedy</li>
+                <li>✅ Trebuie o soluție rapidă</li>
+                <li>✅ Spațiu de memorie limitat</li>
+                <li>✅ Soluție aproximativă acceptabilă</li>
+                <li>✅ Exemple: Huffman, Dijkstra, Kruskal</li>
+            </ul>
+        </div>
+
+        <div class="use-card dp-use">
+            <h3>🧩 Când folosești DP?</h3>
+            <ul>
+                <li>✅ Trebuie soluția optimă garantată</li>
+                <li>✅ Subproblemele se suprapun</li>
+                <li>✅ Ai memorie suficientă</li>
+                <li>✅ Greedy nu funcționează</li>
+                <li>✅ Exemple: Knapsack, LCS, Fibonacci</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+
+    <!--ECHIPA-->
+
+    <section class="section" id="echipa">
+      <h2 class="section-title">Echipa Noastră</h2>
+      <div class="cards-grid">
+        <div class="card team-card">
+          <div class="team-avatar"></div>
+          <h3>Cristache Mihnea-Andrei</h3>
+          <p class="team-role">Realizarea Site-ului</p>
+          <p>Rezolvarea problemei Comis-Voiajorului</p>
+        </div>
+        <div class="card team-card">
+          <div class="team-avatar"></div>
+          <h3>Hoza Andrei</h3>
+          <p class="team-role">Explicarea programarii dinamice</p>
+          <p>Rezolvarea problemei "Ariciului"</p>
+        </div>
+        <div class="card team-card">
+          <div class="team-avatar"></div>
+          <h3>Ionita Sara</h3>
+          <p class="team-role">Explica Metoda de programare greedy</p>
+          <p>Rezolva problema "Bancnotelor"</p>
+        </div>
+        <div class="card team-card">
+          <div class="team-avatar"></div>
+          <h3>Ivana Teodor</h3>
+          <p class="team-role">Exemplificarea ambelor tipuri de programare</p>
+          <p>Rezolvarea problemei "Pachete multe" si "Rucsac Halloween</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal -->
+    <div id="infoModal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2 class="modal-header" id="modalTitle"></h2>
+        <div class="modal-body" id="modalBody"></div>
+      </div>
+    </div>
+
+    <footer>
+      <p>&copy; 2025 Proiect Informatică - C.N.N.G</p>
+    </footer>
+
+    <script>
+      // Smooth scrolling
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute("href"));
+          target.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        });
+      });
+
+      // Modal functionality
+      const modal = document.getElementById("infoModal");
+      const closeBtn = document.querySelector(".close-modal");
+      const modalTitle = document.getElementById("modalTitle");
+      const modalBody = document.getElementById("modalBody");
+
+      const modalContent = {
+        // Greedy - Caracteristici
+        caracteristica1: {
+          title: "Strategia de optim local",
+          body: "Algoritmul Greedy ia întotdeauna decizia care pare cea mai bună în momentul curent, fără a lua în considerare consecințele. La fiecare pas, se alege opțiunea care oferă beneficiul maxim imediat, speranță fiind că această serie de alegeri optime locale va duce la o soluție optimă globală.",
+        },
+        caracteristica2: {
+          title: "Construirea iterativa a solutiei",
+          body: "Soluția finală este construită pas cu pas, începând de la zero. La fiecare iterație, se adaugă un element nou la soluția parțială existentă, bazându-se pe criteriul greedy definit pentru problemă. Acest proces continuă până când se obține o soluție completă care satisface toate cerințele problemei.",
+        },
+        caracteristica3: {
+          title: "Simplitate si eficienta",
+          body: "Algoritmii Greedy sunt de obicei simpli de implementat și înțeles, având o complexitate computațională redusă. Aceasta îi face extrem de eficienți pentru probleme mari unde alte metode ar fi prea costisitoare. Simplitatea vine din faptul că nu necesită explorarea tuturor posibilităților, ci doar luarea celei mai bune decizii locale.",
+        },
+        caracteristica4: {
+          title: "Soluție rapidă dar nu întotdeauna optimă",
+          body: "Deși algoritmii Greedy oferă soluții rapide, acestea nu garantează întotdeauna optimul global. În multe cazuri, alegerea optimă locală poate să nu conducă la cea mai bună soluție finală. De aceea, este crucial să se demonstreze matematic că abordarea greedy funcționează pentru problema specifică înainte de a o aplica.",
+        },
+        caracteristica5: {
+          title: "Necesita demonstratie de corectitudine",
+          body: "Pentru a utiliza cu încredere un algoritm Greedy, trebuie să demonstrăm că strategia aleasă conduce întotdeauna la soluția optimă. Aceasta se face de obicei prin două proprietăți: proprietatea alegerii greedy (alegerea locală optimă face parte din soluția globală optimă) și substructura optimă (o soluție optimă conține soluții optime ale subproblemelor).",
+        },
+        // Greedy - Utilizari Practice
+        utilizare1: {
+          title: "Algoritmi de rutare in retele",
+          body: "În rețelele de calculatoare, algoritmii Greedy sunt folosiți pentru a găsi cea mai scurtă cale între două noduri. Exemple clasice includ algoritmul lui Dijkstra pentru cele mai scurte drumuri și algoritmul Prim pentru arbori parțiali minimi. Acești algoritmi aleg întotdeauna următorul nod cel mai apropiat sau muchia cu costul minim, construind astfel rute optime.",
+        },
+        utilizare2: {
+          title: "Compresia datelor",
+          body: "Algoritmul Huffman pentru compresia datelor este un exemplu clasic de utilizare Greedy. Acesta construiește un arbore de codificare optim prin alegerea repetată a celor două simboluri cu frecvența cea mai mică și combinarea lor. Rezultatul este un cod de lungime variabilă care minimizează spațiul total necesar pentru reprezentarea datelor.",
+        },
+        utilizare3: {
+          title: "Planificarea activitatilor si evenimentelor",
+          body: "Problema selecției activităților este un exemplu perfect de aplicare Greedy: având mai multe activități cu timpi de început și sfârșit, se dorește selectarea numărului maxim de activități care nu se suprapun. Strategia Greedy alege întotdeauna activitatea care se termină prima, maximizând astfel spațiul disponibil pentru activitățile următoare.",
+        },
+        utilizare4: {
+          title: "Schimbarea restului",
+          body: "Când un casier trebuie să returneze rest folosind un număr minim de monede/bancnote, aplică algoritmul Greedy: alege întotdeauna bancnota sau moneda de valoare maximă care nu depășește suma rămasă. Pentru sistemele monetare standard (unde valorile sunt proiectate corespunzător), această metodă garantează folosirea numărului minim de monede.",
+        },
+        utilizare5: {
+          title: "Retele de transport si utilitati",
+          body: "În proiectarea rețelelor de transport (drumuri, căi ferate) sau utilitati (electricitate, apă), algoritmii Greedy sunt folosiți pentru a conecta toate punctele cu cost minim. Algoritmul lui Kruskal pentru arbori parțiali minimi adaugă pas cu pas muchia cu costul minim care nu formează un ciclu, construind astfel o rețea optimă care conectează toate nodurile.",
+        },
+        // Programare Dinamică - Principii Fundamentale
+        principiu1: {
+          title: "Principiul optimalitatii",
+          body: 'Cunoscut și ca "substructura optimă", acest principiu afirmă că o soluție optimă a problemei conține în ea soluții optime ale subproblemelor. Cu alte cuvinte, dacă rezolvi optimal fiecare subproblemă și le combini corect, vei obține soluția optimă a problemei principale. Acest principiu este esențial pentru a putea aplica programarea dinamică și permite construirea soluției pas cu pas.',
+        },
+        principiu2: {
+          title: "Subproblemele care sa suprapun",
+          body: 'Spre deosebire de metoda "divide et impera" unde subproblemele sunt independente, în programarea dinamică aceleași subprobleme apar de mai multe ori în procesul de rezolvare. De aceea, memorăm (cachăm) rezultatele subproblemelor deja calculate pentru a le refolosi, evitând recalcularea. Această suprapunere face ca programarea dinamică să fie mult mai eficientă decât o abordare recursivă simplă.',
+        },
+        // Programare Dinamică - Utilizari Practice
+                pd_utilizare1: {
+                  title: "Cercetarea Operationala",
+                  body: `In cercetarea operationala, programarea dinamica este aplicata cu succes in domenii precum:
+        - Planificarea productiei;
+        - Gestionarea stocurilor;
+        - Programarea transporturilor si rutelor;
+        - Alocarea resurselor.`,
+                },
+        pd_utilizare2: {
+          title: "Bioinformatica",
+          body: "Programarea dinamica joaca un rol esential in bioinformatica,fiind una dintre cele mai importante metode folosite pentru analiza si compararea secventelor biologice (ADN,ARN sau proteine).Este aplicata in special pentru: - Alinierea globala a secventelor; - Alinierea locala a secventelor; - Predictia structurii secundare a proteinelor si ARN-ului. - Alinierea multiplelor secvente. - Reconstructia filogenetica.",
+        },
+        pd_utilizare3: {
+          title: "Inteligenta artificiala si invatarea automata",
+          body: "In primul rand invatarea automata este o ramura foarte importanta ce sta la baza IA, fiind folosita pentru a intelege exemplele date de utilizator si a putea creea ulterior ce i se da. In acest context,programarea dinamica este folosita pentru a modela si optimiza procesele de invatare bazate pe experienta,prin impartirea unei probleme complexre in subprobleme mai simple, rezolvate iterativ; - Invatarea prin intarire; - Planificarea automata; - Recunoasterea vorbirii si procesarea limbajului natural.",
+        },
+        pd_utilizare4: {
+          title: "Inginerie si navigatie",
+          body: "Metoda de programare dinamica poate fi exemplificata si in inginerie si navigatie, fiind folosita astfel: - Optimizarea proiectarii sistemelor; - Controlul optim al sistemelor dinamice; - Planificarea si intretinerea echipamentelor; - Determinarea rutelor optime(nave,avioane,vehicule autonome); - Sisteme GPS;",
+        },
+        pt_utilizare1: {
+          title: "Problema rucsacului",
+          body: "Aceasta problemă implică selectarea unui subset de obiecte cu greutăți și valori date pentru a maximiza valoarea totală fără a depăși o greutate limită. Programarea dinamică oferă o soluție eficientă prin construirea unei matrice care evaluează toate combinațiile posibile de obiecte.",
+        },
+        pt_utilizare2: {
+          title: "Cel mai lung subsir comun",
+          body: "Această problemă constă în găsirea celei mai lungi secvențe care apare în aceeași ordine în două șiruri date. Programarea dinamică construiește o matrice pentru a urmări lungimile subsirurilor comune și permite reconstrucția soluției optime.",
+        },
+        pt_utilizare3: {
+          title: "Cel mai lung subsir crescator",
+          body: "Această problemă implică găsirea celei mai lungi secvențe de elemente într-un șir care sunt în ordine crescătoare. Programarea dinamică ajută la construirea unei soluții eficiente prin evaluarea fiecărui element și determinarea celei mai lungi secvențe posibile care se poate forma până la acel punct.",
+        },
+        pt_utilizare4: {
+          title: "Problema inmultirii in lant a matricelor",
+          body: "Această problemă implică determinarea ordinii optime de înmulțire a unei secvențe de matrice pentru a minimiza costul total al operațiilor. Programarea dinamică construiește o matrice care evaluează toate posibilele parantezări și calculează costurile asociate pentru a găsi soluția optimă.",
+        },
+        pt_utilizare5: {
+          title: "Secventa Fibonacci",
+          body: "Calcularea numerelor Fibonacci poate fi optimizată folosind programarea dinamică prin memorarea rezultatelor intermediare. Aceasta evită recalcularea valorilor deja determinate, reducând astfel complexitatea temporală de la exponențială la liniară.",
+        },
+        pt_utilizare6: {
+          title: "Suma maxima de subsir",
+          body: "Această problemă implică găsirea unei subsecvențe contigue într-un șir de numere care are suma maximă. Programarea dinamică ajută la construirea unei soluții eficiente prin evaluarea fiecărui element și determinarea celei mai mari sume posibile care se poate obține până la acel punct.",
+        },
+        gt1: {
+          title: "Problema selectarii activitatilor",
+          body: "Problema selectiei activitatilor este un proces decizional de baza in management si economie, care implica alegerea celor mai potrivite activitati pentru a atinge obiectivele specifice,luand in considerare constrangeri precum resursele limitate(timp,bani,personal). Se bazeaza pe analiza cost-beneficiu si prioritizarea activitatilor pentru a maximiza eficienta si productivitatea.",
+        },
+        gt2: {
+          title: "Codificarea Huffman",
+          body: "Codurile Huffman reprezintă o tehnică foarte eficientă de compactare a datelor, spaţiul economisit fiind cuprins adesea între 20% şi 90%. Algoritmul greedy pentru realizarea acestei codificări înregistrează frecvenţele de apariţie ale fiecărui simbol dintr-un fişier, după care utilizează o modalitate optimă pentru reprezentarea fiecărui simbol sub forma unui şir binar. Astfel, se dă o mulţime A = {a1,a2,...,an} formată din n simboluri. Numim cod binar un şir de cifre de 0 şi 1 de o lungime finită. Fie B un şir de lungime n de coduri binare cu proprietatea că niciun cod bi nu este prefixul unui alt cod bj (i ≠ j).",
+        },
+        gt3: {
+          title: "Schimbarea de monede",
+          body: "Metoda greedy pentru schimbarea de monede presupune alegerea celei mai mari monede posibile la fiecare pas, scăzând-o din suma rămasă, până când suma devine zero. Algoritmul funcționează astfel: 1. Alege moneda cu cea mai mare valoare care este mai mică sau egală cu suma rămasă. 2. Scade valoarea acelei monede din suma totală. 3. Repetă pașii 1 și 2 până când suma devine (0).",
+        },
+        gt4: {
+          title: "Problema Sumei maxime",
+          body: "Se consideră o mulţime A cu n numere reale. Se cere o submulţime S a sa, astfel încât suma elementelor sale să fie maximă.",
+        },
+      };
+
+      // Add click events to all list items with data-modal attribute
+      document.querySelectorAll("[data-modal]").forEach((item) => {
+        item.addEventListener("click", function () {
+          const modalId = this.getAttribute("data-modal");
+          const content = modalContent[modalId];
+
+          if (content) {
+            modalTitle.textContent = content.title;
+            modalBody.textContent = content.body;
+            modal.style.display = "block";
+            document.body.style.overflow = "hidden";
+          }
+        });
+      });
+
+      // Close modal when clicking X
+      closeBtn.addEventListener("click", function () {
+        modal.style.display = "none";
+        document.body.style.overflow = "auto";
+      });
+
+      // Close modal when clicking outside
+      window.addEventListener("click", function (event) {
+        if (event.target === modal) {
+          modal.style.display = "none";
+          document.body.style.overflow = "auto";
+        }
+      });
+
+      // Close modal with Escape key
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && modal.style.display === "block") {
+          modal.style.display = "none";
+          document.body.style.overflow = "auto";
+        }
+      });
+      // Interactive gradient follows mouse
+      document.addEventListener("mousemove", (e) => {
+        const x = (e.clientX / window.innerWidth) * 100;
+        const y = (e.clientY / window.innerHeight) * 100;
+
+        document.body.style.setProperty("--mouse-x", x + "%");
+        document.body.style.setProperty("--mouse-y", y + "%");
+      });
+      // Animate bars on scroll
+const observerOptions = {
+    threshold: 0.5,
+    rootMargin: '0px 0px -100px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.width = entry.target.getAttribute('style').match(/width:\s*(\d+%)/)[1];
+        }
+    });
+}, observerOptions);
+
+document.querySelectorAll('.bar').forEach(bar => {
+    const width = bar.style.width;
+    bar.style.width = '0%';
+    setTimeout(() => {
+        bar.style.width = width;
+    }, 100);
+    observer.observe(bar);
+});
+
+// Venn circle interaction
+document.querySelectorAll('.venn-circle').forEach(circle => {
+    circle.addEventListener('click', function() {
+        this.style.fillOpacity = this.style.fillOpacity === '0.7' ? '0.3' : '0.7';
+    });
+});
+    </script>
+  </body>
+</html>

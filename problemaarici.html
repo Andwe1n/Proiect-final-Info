@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Problema Ariciului - DinamicGreedy</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: #0a0a0a;
+        color: #e0e0e0;
+        overflow-x: hidden;
+        position: relative;
+        line-height: 1.6;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+            circle at 20% 30%,
+            rgba(0, 102, 255, 0.15) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 20%,
+            rgba(0, 245, 255, 0.15) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 40% 70%,
+            rgba(138, 43, 226, 0.1) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 90% 80%,
+            rgba(255, 0, 128, 0.1) 0%,
+            transparent 50%
+          ),
+          linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+        z-index: -1;
+        animation: meshMove 20s ease-in-out infinite;
+      }
+
+      @keyframes meshMove {
+        0%,
+        100% {
+          background-position: 0% 0%, 100% 0%, 0% 100%, 100% 100%, 0% 0%;
+        }
+        50% {
+          background-position: 100% 100%, 0% 0%, 100% 100%, 0% 0%, 50% 50%;
+        }
+      }
+
+      header {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background: rgba(10, 10, 10, 0.8);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 1000;
+        padding: 1.5rem 0;
+      }
+
+      nav {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 3rem;
+      }
+
+      .logo {
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #00f5ff, #0066ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-decoration: none;
+      }
+
+      .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.8rem 1.5rem;
+        background: linear-gradient(135deg, #0066ff, #00f5ff);
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: transform 0.3s, box-shadow 0.3s;
+        box-shadow: 0 5px 20px rgba(0, 102, 255, 0.3);
+      }
+
+      .back-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0, 102, 255, 0.5);
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 120px 3rem 5rem;
+      }
+
+      .problem-header {
+        text-align: center;
+        margin-bottom: 4rem;
+      }
+
+      .problem-title {
+        font-size: 3rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #00f5ff, #0066ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+      }
+
+      .problem-meta {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+      }
+
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        background: rgba(0, 102, 255, 0.1);
+        border: 1px solid rgba(0, 245, 255, 0.3);
+        border-radius: 20px;
+        font-size: 0.95rem;
+      }
+
+      .difficulty-easy {
+            background: rgba(46, 213, 115, 0.2);
+            border-color: #2ed573;
+            color: #2ed573;
+        }
+
+      .content-section {
+        background: linear-gradient(
+          145deg,
+          rgba(20, 20, 20, 0.8),
+          rgba(30, 30, 30, 0.6)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 3rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .content-section::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 102, 255, 0.05),
+          rgba(0, 245, 255, 0.05)
+        );
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+
+      .content-section:hover::before {
+        opacity: 1;
+      }
+
+      .section-title {
+        font-size: 1.8rem;
+        color: #00f5ff;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .section-content {
+        color: #b0b0b0;
+        font-size: 1.1rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .section-content p {
+        margin-bottom: 1rem;
+      }
+
+      .section-content ul,
+      .section-content ol {
+        margin-left: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      .section-content li {
+        margin-bottom: 0.5rem;
+      }
+
+      .example-box {
+        background: rgba(0, 102, 255, 0.1);
+        border-left: 4px solid #00f5ff;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin: 1.5rem 0;
+        font-family: "Courier New", monospace;
+      }
+
+      .example-label {
+        color: #00f5ff;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      code {
+        background: rgba(0, 245, 255, 0.1);
+        padding: 0.2rem 0.6rem;
+        border-radius: 5px;
+        font-family: "Courier New", monospace;
+        color: #00f5ff;
+      }
+
+      pre {
+        background: rgba(10, 10, 10, 0.8);
+        border: 1px solid rgba(0, 245, 255, 0.3);
+        border-radius: 10px;
+        padding: 1.5rem;
+        overflow-x: auto;
+        margin: 1.5rem 0;
+      }
+
+      pre code {
+        background: none;
+        padding: 0;
+        color: #e0e0e0;
+      }
+
+      .hint-box {
+        background: linear-gradient(
+          135deg,
+          rgba(138, 43, 226, 0.1),
+          rgba(0, 245, 255, 0.1)
+        );
+        border: 1px solid rgba(138, 43, 226, 0.4);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+      }
+
+      .hint-title {
+        color: #ba55d3;
+        font-weight: 600;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .warning-box {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 159, 67, 0.1),
+          rgba(255, 71, 87, 0.1)
+        );
+        border: 1px solid rgba(255, 159, 67, 0.4);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+      }
+
+      .warning-title {
+        color: #ff9f43;
+        font-weight: 600;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .solution-toggle {
+        background: linear-gradient(135deg, #0066ff, #00f5ff);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 25px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+        box-shadow: 0 5px 20px rgba(0, 102, 255, 0.3);
+        margin: 2rem 1rem 2rem 0;
+      }
+
+      .solution-toggle:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0, 102, 255, 0.5);
+      }
+
+      .solution-toggle.greedy {
+        background: linear-gradient(135deg, #2ed573, #26de81);
+      }
+
+      .solution-toggle.dp {
+        background: linear-gradient(135deg, #ba55d3, #9b59b6);
+      }
+
+      .solution-content {
+        display: none;
+        animation: slideDown 0.4s ease-out;
+      }
+
+      .solution-content.active {
+        display: block;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 2rem 0;
+      }
+
+      .comparison-table th,
+      .comparison-table td {
+        padding: 1rem;
+        text-align: left;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .comparison-table th {
+        background: rgba(0, 102, 255, 0.2);
+        color: #00f5ff;
+        font-weight: 600;
+      }
+
+      .comparison-table td {
+        background: rgba(0, 0, 0, 0.3);
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 100px 1.5rem 3rem;
+        }
+
+        .problem-title {
+          font-size: 2rem;
+        }
+
+        .content-section {
+          padding: 2rem;
+        }
+
+        .section-title {
+          font-size: 1.5rem;
+        }
+
+        nav {
+          padding: 0 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="index.html" class="logo">{ DinamicGreedy }</a>
+        <a href="index.html#probleme" class="back-btn">
+          ← Înapoi la Probleme
+        </a>
+      </nav>
+    </header>
+
+    <div class="container">
+      <!-- Problem Header -->
+      <div class="problem-header">
+        <h1 class="problem-title">🦔 Problema Ariciului</h1>
+        <div class="problem-meta">
+          <div class="meta-item difficulty-easy">
+            <span>📊</span>
+            <span>Dificultate: Ușor</span>
+          </div>
+          <div class="meta-item">
+            <span>🎯</span>
+            <span>Tip: Greedy & DP</span>
+          </div>
+          <div class="meta-item">
+            <span>⏱️</span>
+            <span>Timp: 15-20 min</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enunț -->
+      <div class="content-section">
+        <h2 class="section-title">📝 Enunțul Problemei</h2>
+        <div class="section-content">
+          <p>
+            O livadă este împărțită în <code>n × m</code> zone. În fiecare zonă
+            crește câte un pom, iar din fiecare pom cade pe jos o cantitate de
+            fructe.
+          </p>
+          <p>
+            În zona din <strong>stânga-sus</strong> se află un arici care vrea
+            să ajungă în zona din <strong>dreapta-jos</strong>. Ariciul se poate
+            deplasa doar pe două direcții: <strong>în jos</strong> sau
+            <strong>spre dreapta</strong>.
+          </p>
+          <p>
+            Determinați cantitatea <strong>maximă de fructe</strong> pe care le
+            poate aduna ariciul prin deplasarea din poziția inițială în cea
+            dorită.
+          </p>
+        </div>
+      </div>
+
+      <!-- Date de Intrare/Ieșire -->
+      <div class="content-section">
+        <h2 class="section-title">📥 Date de Intrare și Ieșire</h2>
+        <div class="section-content">
+          <p><strong>Intrare:</strong> (fișierul <code>arici.in</code>)</p>
+          <ul>
+            <li>
+              Prima linie: <code>n</code> și <code>m</code> (dimensiunile
+              livezii)
+            </li>
+            <li>
+              Următoarele <code>n</code> linii: câte <code>m</code> numere
+              reprezentând fructele din fiecare zonă
+            </li>
+          </ul>
+
+          <p><strong>Ieșire:</strong> (consolă)</p>
+          <ul>
+            <li>
+              Un singur număr: cantitatea maximă de fructe pe care o poate aduna
+              ariciul
+            </li>
+          </ul>
+
+          <div class="example-box">
+            <div class="example-label">Exemplu:</div>
+            <strong>Intrare:</strong><br />
+            3 4<br />
+            2 3 1 4<br />
+            5 2 8 1<br />
+            1 6 3 7<br />
+            <br />
+            <strong>Ieșire:</strong> 28<br />
+            <strong>Explicație:</strong> Traseul optim: 2 → 5 → 2 → 8 → 1 → 3 →
+            7 = 28 fructe
+          </div>
+        </div>
+      </div>
+
+      <!-- Cerințe -->
+      <div class="content-section">
+        <h2 class="section-title">✅ Cerințe</h2>
+        <div class="section-content">
+          <ol>
+            <li>
+              Citirea corectă a matricei de fructe din fișierul de intrare
+            </li>
+            <li>Implementarea algoritmului pentru găsirea traseului optim</li>
+            <li>Afișarea sumei maxime de fructe</li>
+            <li>
+              Gestionarea corectă a constraingerilor (doar dreapta și jos)
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Comparație Abordări -->
+      <div class="content-section">
+        <h2 class="section-title">⚖️ Două Abordări Posibile</h2>
+        <div class="section-content">
+          <p>
+            Această problemă poate fi rezolvată folosind două abordări diferite,
+            fiecare cu avantajele și dezavantajele sale:
+          </p>
+
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Aspect</th>
+                <th>Greedy</th>
+                <th>Programare Dinamică</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Strategie</strong></td>
+                <td>Alege mereu direcția cu mai multe fructe</td>
+                <td>Calculează optimalul pentru fiecare celulă</td>
+              </tr>
+              <tr>
+                <td><strong>Corectitudine</strong></td>
+                <td>❌ NU garantează soluția optimă</td>
+                <td>✅ Garantează soluția optimă</td>
+              </tr>
+              <tr>
+                <td><strong>Complexitate</strong></td>
+                <td>O(n + m)</td>
+                <td>O(n × m)</td>
+              </tr>
+              <tr>
+                <td><strong>Memorie</strong></td>
+                <td>O(1) - doar variabile</td>
+                <td>O(n × m) - matricea DP</td>
+              </tr>
+              <tr>
+                <td><strong>Implementare</strong></td>
+                <td>Mai simplă</td>
+                <td>Medie</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Warning Box -->
+      <div class="warning-box">
+        <div class="warning-title">
+          ⚠️ Atenție - Greedy nu este întotdeauna corect!
+        </div>
+        <div class="section-content">
+          <p>
+            Abordarea Greedy pentru această problemă
+            <strong>NU garantează soluția optimă</strong>. Ea funcționează prin
+            alegerea mereu a direcției cu mai multe fructe imediate, dar poate
+            rata oportunități mai bune pe termen lung.
+          </p>
+          <p>
+            <strong>Exemplu contrar:</strong><br />
+            Matrice: <code>[[1, 100], [100, 1]]</code><br />
+            Greedy: 1 → 100 → 1 = 102<br />
+            Optim: 1 → 100 → 100 = 201
+          </p>
+          <p>
+            Pentru soluția garantat corectă, folosește
+            <strong>Programarea Dinamică</strong>!
+          </p>
+        </div>
+      </div>
+
+      <!-- Hint -->
+      <div class="hint-box">
+        <div class="hint-title">💡 Hint pentru DP</div>
+        <div class="section-content">
+          <p>
+            Gândește-te: pentru a ajunge la poziția (i, j), ariciul trebuie să
+            fi venit fie de sus (i-1, j), fie de stânga (i, j-1). Cantitatea
+            maximă la poziția (i, j) este fructele de acolo plus maximul dintre
+            cele două variante de sosire!
+          </p>
+        </div>
+      </div>
+
+      <!-- Solution Buttons -->
+      <button class="solution-toggle greedy" onclick="toggleSolution('greedy')">
+        🎯 Afișează Soluția Greedy
+      </button>
+      <button class="solution-toggle dp" onclick="toggleSolution('dp')">
+        🧩 Afișează Soluția DP (Corectă)
+      </button>
+
+      <!-- Soluție Greedy -->
+      <div id="solution-greedy" class="solution-content">
+        <div class="content-section">
+          <h2 class="section-title">🎯 Soluția Greedy (Euristic)</h2>
+          <div class="section-content">
+            <p>
+              <strong>⚠️ Atenție:</strong> Această soluție NU garantează
+              rezultatul optim!
+            </p>
+
+            <h3 style="color: #00f5ff; margin-top: 2rem; margin-bottom: 1rem">
+              Abordare:
+            </h3>
+            <ol>
+              <li>Pornim din poziția (1,1)</li>
+              <li>La fiecare pas, comparăm celula din dreapta cu cea de jos</li>
+              <li>Mergem în direcția cu mai multe fructe</li>
+              <li>Continuăm până ajungem la destinație</li>
+            </ol>
+
+            <pre><code>#include &lt;fstream&gt;
+#include &lt;iostream&gt;
+using namespace std;
+
+int a[101][101];
+
+int main() {
+    ifstream f("arici.in");
+    int n, m;
+    f >> n >> m;
+    
+    for (int i = 1; i <= n; i++)
+        for (int j = 1; j <= m; j++)
+            f >> a[i][j];
+    
+    int x = 1, y = 1;
+    int suma = a[1][1];
+    
+    while (x < n || y < m) {
+        if (x < n && y < m) {
+            if (a[x + 1][y] > a[x][y + 1])
+                x++;
+            else
+                y++;
+        }
+        else if (x < n) 
+            x++;
+        else 
+            y++;
+        suma = suma + a[x][y];
+    }
+    
+    cout << suma;
+    return 0;
+}</code></pre>
+
+            <h3 style="color: #00f5ff; margin-top: 2rem; margin-bottom: 1rem">
+              Avantaje:
+            </h3>
+            <ul>
+              <li>✅ Implementare foarte simplă</li>
+              <li>✅ Complexitate timp: O(n + m)</li>
+              <li>✅ Complexitate spațiu: O(1)</li>
+              <li>✅ Rapidă execuție</li>
+            </ul>
+
+            <h3 style="color: #ff9f43; margin-top: 2rem; margin-bottom: 1rem">
+              Dezavantaje:
+            </h3>
+            <ul>
+              <li>❌ NU garantează soluția optimă</li>
+              <li>❌ Poate rata combinații mai bune</li>
+              <li>❌ Folosește doar informație locală</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Soluție DP -->
+      <div id="solution-dp" class="solution-content">
+        <div class="content-section">
+          <h2 class="section-title">🧩 Soluția Programare Dinamică (Optimă)</h2>
+          <div class="section-content">
+            <p>
+              <strong>✅ Această soluție garantează rezultatul optim!</strong>
+            </p>
+
+            <h3 style="color: #00f5ff; margin-top: 2rem; margin-bottom: 1rem">
+              Abordare:
+            </h3>
+            <ol>
+              <li>
+                Transformăm matricea: fiecare celulă va conține suma maximă până
+                acolo
+              </li>
+              <li>
+                Pentru fiecare celulă (i, j), calculăm:
+                <code>a[i][j] = a[i][j] + max(a[i-1][j], a[i][j-1])</code>
+              </li>
+              <li>La final, a[n][m] conține suma maximă</li>
+            </ol>
+
+            <pre><code>#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+using namespace std;
+
+int a[101][101];
+
+int main() {
+    ifstream f("arici.in");
+    int i, j, n, m;
+    f >> n >> m;
+    
+    for (i = 1; i <= n; i++) {
+        for (j = 1; j <= m; j++) {
+            f >> a[i][j];
+            if (a[i][j - 1] < a[i - 1][j])
+                a[i][j] = a[i][j] + a[i - 1][j];  
+            else
+                a[i][j] = a[i][j] + a[i][j - 1];  
+        }
+    }
+    cout << a[n][m];
+    
+    return 0;
+}</code></pre>
+
+            <h3 style="color: #00f5ff; margin-top: 2rem; margin-bottom: 1rem">
+              Explicație Pas cu Pas:
+            </h3>
+            <div class="example-box">
+              <strong>Matrice inițială:</strong><br />
+              2 3 1 4<br />
+              5 2 8 1<br />
+              1 6 3 7<br />
+              <br />
+              <strong>După aplicarea DP:</strong><br />
+              2 5 6 10<br />
+              7 7 15 16<br />
+              8 14 18 25<br />
+              <br />
+              <strong>Explicație:</strong><br />
+              - a[1][2] = 3 + a[1][1] = 3 + 2 = 5<br />
+              - a[2][1] = 5 + a[1][1] = 5 + 2 = 7<br />
+              - a[2][2] = 2 + max(a[1][2], a[2][1]) = 2 + max(5, 7) = 2 + 7 =
+              9... etc.
+            </div>
+
+            <h3 style="color: #00f5ff; margin-top: 2rem; margin-bottom: 1rem">
+              Avantaje:
+            </h3>
+            <ul>
+              <li>✅ Garantează soluția optimă</li>
+              <li>✅ Folosește proprietatea substructurii optimale</li>
+              <li>✅ Evită recalculările</li>
+              <li>✅ Complexitate predictibilă: O(n × m)</li>
+            </ul>
+
+            <h3 style="color: #00f5ff; margin-top: 2rem; margin-bottom: 1rem">
+              Principiul DP:
+            </h3>
+            <p>
+              <strong>Substructură optimă:</strong> Suma maximă până la (i, j)
+              se calculează folosind sumele maxime deja calculate pentru (i-1,
+              j) și (i, j-1).
+            </p>
+            <p>
+              <strong>Formula recursivă:</strong><br />
+              <code>DP[i][j] = fructe[i][j] + max(DP[i-1][j], DP[i][j-1])</code>
+            </p>
+          </div>
+        </div>
+
+        <div class="content-section">
+          <h2 class="section-title">📊 Complexitate</h2>
+          <div class="section-content">
+            <ul>
+              <li>
+                <strong>Timp:</strong> O(n × m) - parcurgem fiecare celulă exact
+                o dată
+              </li>
+              <li>
+                <strong>Spațiu:</strong> O(n × m) - matricea este modificată
+                in-place
+              </li>
+            </ul>
+            <p>
+              Deși are complexitate mai mare decât Greedy, DP garantează
+              corectitudinea și pentru datele uzuale (n, m ≤ 100) este foarte
+              eficientă.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function toggleSolution(type) {
+        const solutionGreedy = document.getElementById("solution-greedy");
+        const solutionDP = document.getElementById("solution-dp");
+        const buttonGreedy = document.querySelector(".solution-toggle.greedy");
+        const buttonDP = document.querySelector(".solution-toggle.dp");
+
+        if (type === "greedy") {
+          solutionGreedy.classList.toggle("active");
+
+          if (solutionGreedy.classList.contains("active")) {
+            buttonGreedy.textContent = "🔒 Ascunde Soluția Greedy";
+            solutionGreedy.scrollIntoView({
+              behavior: "smooth",
+              block: "nearest",
+            });
+          } else {
+            buttonGreedy.textContent = "🎯 Afișează Soluția Greedy";
+          }
+        } else {
+          solutionDP.classList.toggle("active");
+
+          if (solutionDP.classList.contains("active")) {
+            buttonDP.textContent = "🔒 Ascunde Soluția DP";
+            solutionDP.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          } else {
+            buttonDP.textContent = "🧩 Afiseaza solutia PD";
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

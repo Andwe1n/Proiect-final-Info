@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Problema Comis-Voiajorului - DinamicGreedy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 102, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 245, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 70%, rgba(138, 43, 226, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 128, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+            z-index: -1;
+            animation: meshMove 20s ease-in-out infinite;
+        }
+
+        @keyframes meshMove {
+            0%, 100% {
+                background-position: 0% 0%, 100% 0%, 0% 100%, 100% 100%, 0% 0%;
+            }
+            50% {
+                background-position: 100% 100%, 0% 0%, 100% 100%, 0% 0%, 50% 50%;
+            }
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            padding: 1.5rem 0;
+        }
+
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 3rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00f5ff, #0066ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(135deg, #0066ff, #00f5ff);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 20px rgba(0, 102, 255, 0.3);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.5);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 120px 3rem 5rem;
+        }
+
+        .problem-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .problem-title {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00f5ff, #0066ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .problem-meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: rgba(0, 102, 255, 0.1);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 20px;
+            font-size: 0.95rem;
+        }
+
+        .difficulty-easy {
+            background: rgba(46, 213, 115, 0.2);
+            border-color: #2ed573;
+            color: #2ed573;
+        }
+
+        .difficulty-medium {
+            background: rgba(255, 159, 67, 0.2);
+            border-color: #ff9f43;
+            color: #ff9f43;
+        }
+
+        .difficulty-hard {
+            background: rgba(255, 71, 87, 0.2);
+            border-color: #ff4757;
+            color: #ff4757;
+        }
+
+        .content-section {
+            background: linear-gradient(145deg, rgba(20, 20, 20, 0.8), rgba(30, 30, 30, 0.6));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.05), rgba(0, 245, 255, 0.05));
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .content-section:hover::before {
+            opacity: 1;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: #00f5ff;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-content {
+            color: #b0b0b0;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-content p {
+            margin-bottom: 1rem;
+        }
+
+        .section-content ul, .section-content ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .example-box {
+            background: rgba(0, 102, 255, 0.1);
+            border-left: 4px solid #00f5ff;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .example-label {
+            color: #00f5ff;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            background: rgba(0, 245, 255, 0.1);
+            padding: 0.2rem 0.6rem;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            color: #00f5ff;
+        }
+
+        pre {
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: #e0e0e0;
+        }
+
+        .hint-box {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(0, 245, 255, 0.1));
+            border: 1px solid rgba(138, 43, 226, 0.4);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .hint-title {
+            color: #ba55d3;
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .solution-toggle {
+            background: linear-gradient(135deg, #0066ff, #00f5ff);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 20px rgba(0, 102, 255, 0.3);
+            margin: 2rem 0;
+        }
+
+        .solution-toggle:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.5);
+        }
+
+        .solution-content {
+            display: none;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .solution-content.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, rgba(255, 159, 67, 0.1), rgba(255, 71, 87, 0.1));
+            border: 1px solid rgba(255, 159, 67, 0.4);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .warning-title {
+            color: #ff9f43;
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 100px 1.5rem 3rem;
+            }
+
+            .problem-title {
+                font-size: 2rem;
+            }
+
+            .content-section {
+                padding: 2rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            nav {
+                padding: 0 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">{ DinamicGreedy }</a>
+            <a href="index.html#probleme" class="back-btn">
+                ← Înapoi la Probleme
+            </a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- Problem Header -->
+        <div class="problem-header">
+            <h1 class="problem-title">🗺️ Problema Comis-Voiajorului (TSP)</h1>
+            <div class="problem-meta">
+                <div class="meta-item difficulty-hard">
+                    <span>📊</span>
+                    <span>Dificultate: Greu</span>
+                </div>
+                <div class="meta-item">
+                    <span>🎯</span>
+                    <span>Tip: Greedy (Aproximare)</span>
+                </div>
+                <div class="meta-item">
+                    <span>⏱️</span>
+                    <span>Timp: 30-45 min</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enunț -->
+        <div class="content-section">
+            <h2 class="section-title">📝 Enunțul Problemei</h2>
+            <div class="section-content">
+                <p>
+                    Se consideră un <strong>comis-voiajor</strong> care trebuie să viziteze un număr de <code>n</code> orașe, 
+                    fiecare dintre ele fiind conectat cu celelalte prin drumuri de diferite costuri (care pot reprezenta distanțe, timp sau bani).
+                </p>
+                <p>
+                    Comis-voiajorul pornește dintr-un oraș de start, trebuie să viziteze fiecare oraș exact o dată, 
+                    și în final să se întoarcă în orașul de plecare.
+                </p>
+                <p>
+                    <strong>Se cere să se determine un traseu cu cost total minim.</strong>
+                </p>
+                <p>
+                    Aceasta este o problemă celebră în informatică, cunoscută ca <strong>Traveling Salesman Problem (TSP)</strong>, 
+                    care este NP-greu. Soluția greedy oferă o aproximare rapidă, dar nu garantează optimul global.
+                </p>
+            </div>
+        </div>
+
+        <!-- Date de Intrare/Ieșire -->
+        <div class="content-section">
+            <h2 class="section-title">📥 Date de Intrare și Ieșire</h2>
+            <div class="section-content">
+                <p><strong>Intrare:</strong> (fișierul <code>orase.in.txt</code>)</p>
+                <ul>
+                    <li><code>n</code> - numărul total de orașe</li>
+                    <li><code>cost[i][j]</code> - matricea costurilor (sau distanțelor) dintre orașul <code>i</code> și orașul <code>j</code>
+                        <ul>
+                            <li>Dacă nu există drum direct între <code>i</code> și <code>j</code>, costul poate fi o valoare foarte mare (9999)</li>
+                            <li><code>cost[i][i] = 0</code> pentru orice <code>i</code></li>
+                        </ul>
+                    </li>
+                    <li><code>start</code> - orașul din care începe și în care se termină traseul</li>
+                </ul>
+                
+                <p><strong>Ieșire:</strong> (fișierul <code>orase.out.txt</code>)</p>
+                <ul>
+                    <li>Costul total minim al traseului parcurs</li>
+                </ul>
+
+                <div class="example-box">
+                    <div class="example-label">Exemplu 1:</div>
+                    <strong>Intrare:</strong><br>
+                    4<br>
+                    0 10 15 20<br>
+                    10 0 35 25<br>
+                    15 35 0 30<br>
+                    20 25 30 0<br>
+                    1<br><br>
+                    <strong>Explicație:</strong> 4 orașe, oraș de start = 1<br>
+                    <strong>Ieșire:</strong><br>
+                    Costul minim al drumului este: 80<br>
+                    <em>(Un traseu posibil: 1 → 2 → 4 → 3 → 1)</em>
+                </div>
+
+                <div class="example-box">
+                    <div class="example-label">Exemplu 2:</div>
+                    <strong>Intrare:</strong><br>
+                    3<br>
+                    0 5 10<br>
+                    5 0 8<br>
+                    10 8 0<br>
+                    1<br><br>
+                    <strong>Ieșire:</strong><br>
+                    Costul minim al drumului este: 23<br>
+                    <em>(Traseu: 1 → 2 → 3 → 1: 5 + 8 + 10 = 23)</em>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cerințe -->
+        <div class="content-section">
+            <h2 class="section-title">✅ Cerințe</h2>
+            <div class="section-content">
+                <ol>
+                    <li>Citiți numărul de orașe și matricea de costuri</li>
+                    <li>Citiți orașul de start</li>
+                    <li>Implementați algoritmul Greedy: la fiecare pas, alegeți cel mai apropiat oraș nevizitat</li>
+                    <li>Marcați fiecare oraș vizitat pentru a nu-l vizita din nou</li>
+                    <li>După vizitarea tuturor orașelor, întoarceți-vă la orașul de start</li>
+                    <li>Afișați costul total al traseului</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Warning Box -->
+        <div class="warning-box">
+            <div class="warning-title">⚠️ Atenție Importantă</div>
+            <div class="section-content">
+                <p>
+                    <strong>Problema Comis-Voiajorului este NP-greu!</strong> Aceasta înseamnă că nu se cunoaște un algoritm 
+                    care să găsească soluția optimă în timp polinomial pentru toate cazurile.
+                </p>
+                <p>
+                    <strong>Algoritmul Greedy</strong> prezentat aici oferă o <em>aproximare rapidă</em>, dar <strong>nu garantează 
+                    soluția optimă</strong>. El alege mereu drumul cel mai scurt disponibil în acel moment (strategie locală), 
+                    ceea ce poate duce la un rezultat suboptimal global.
+                </p>
+                <p>
+                    Pentru soluții optime exacte, ar trebui folosite tehnici precum: Dynamic Programming cu Bitmask, 
+                    Branch and Bound, sau algoritmi genetici.
+                </p>
+            </div>
+        </div>
+
+        <!-- Hint -->
+        <div class="hint-box">
+            <div class="hint-title">💡 Hint</div>
+            <div class="section-content">
+                <p>
+                    Folosește un vector <code>viz[]</code> pentru a ține evidența orașelor vizitate. La fiecare pas, 
+                    parcurge toate orașele și găsește cel mai apropiat oraș nevizitat față de orașul curent. 
+                    Adaugă costul la total și marchează orașul ca vizitat. Nu uita să adaugi și costul de întoarcere 
+                    la orașul de start la final!
+                </p>
+            </div>
+        </div>
+
+        <!-- Abordare -->
+        <div class="content-section">
+            <h2 class="section-title">🔍 Abordarea Greedy (Nearest Neighbor)</h2>
+            <div class="section-content">
+                <p>Algoritmul folosește strategia <strong>"Cel Mai Apropiat Vecin"</strong> (Nearest Neighbor):</p>
+                <ol>
+                    <li><strong>Inițializare:</strong> Pornim din orașul de start și îl marcăm ca vizitat</li>
+                    <li><strong>Alegere locală optimă:</strong> La fiecare pas:
+                        <ul>
+                            <li>Căutăm cel mai apropiat oraș nevizitat față de orașul curent</li>
+                            <li>Alegem orașul cu distanța minimă</li>
+                        </ul>
+                    </li>
+                    <li><strong>Actualizare:</strong> 
+                        <ul>
+                            <li>Adăugăm costul la totalul drumului</li>
+                            <li>Marcăm orașul ca vizitat</li>
+                            <li>Orașul devine noul oraș curent</li>
+                        </ul>
+                    </li>
+                    <li><strong>Repetare:</strong> Continuăm până vizităm toate orașele</li>
+                    <li><strong>Finalizare:</strong> Adăugăm costul de întoarcere la orașul de start</li>
+                </ol>
+                
+                <p><strong>De ce este Greedy?</strong></p>
+                <p>
+                    Algoritmul ia decizia "locală optimă" la fiecare pas (cel mai apropiat oraș), 
+                    fără a lua în considerare impactul global al acestei alegeri. Este o strategie <em>miopă</em> 
+                    (myopic) - privește doar un pas înainte.
+                </p>
+                
+                <p><strong>Avantaje:</strong></p>
+                <ul>
+                    <li>Foarte rapid: O(n²)</li>
+                    <li>Simplu de implementat</li>
+                    <li>Oferă o soluție rezonabilă în practică</li>
+                </ul>
+                
+                <p><strong>Dezavantaje:</strong></p>
+                <ul>
+                    <li>Nu garantează soluția optimă</li>
+                    <li>Poate da rezultate slabe pentru anumite configurații de orașe</li>
+                    <li>Depinde de orașul de start ales</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Soluție Button -->
+        <button class="solution-toggle" onclick="toggleSolution()">
+            🔓 Afișează Soluția
+        </button>
+
+        <!-- Soluție (Hidden) -->
+        <div id="solution" class="solution-content">
+            <div class="content-section">
+                <h2 class="section-title">💻 Soluția în C++</h2>
+                <div class="section-content">
+                    <pre><code>#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+using namespace std;
+
+bool viz[20];
+
+int main() {
+    ifstream f("orase.in");
+    ofstream g("orase.out");
+    
+    int n, i, j, oras_start, oras_curent;
+    int cost_minim = 9999, cost_total = 0, oras_urmator;
+    int distanta[20][20];
+    
+    f >> n;
+    
+    for (i = 1; i <= n; i++)
+        for (j = 1; j <= n; j++) {
+            f >> distanta[i][j];
+            viz[j] = false;
+        }
+
+    f >> oras_start;
+    oras_curent = oras_start;
+    viz[oras_curent] = true;
+
+    for (i = 1; i < n; i++) {
+        cost_minim = 9999; 
+        for (j = 1; j <= n; j++)
+            if (distanta[oras_curent][j] < cost_minim && viz[j] == false) {
+                cost_minim = distanta[oras_curent][j];
+                oras_urmator = j;
+            }
+
+        cost_total = cost_total + cost_minim;
+        oras_curent = oras_urmator;
+        viz[oras_curent] = true;
+    }
+    cost_total = cost_total + distanta[oras_curent][oras_start];
+    
+    g << "Costul minim al drumului este: " << cost_total;
+    
+    f.close();
+    g.close();
+    return 0;
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <h2 class="section-title">📊 Explicație Pas cu Pas</h2>
+                <div class="section-content">
+                    <p><strong>Pentru n = 4, start = 1, matricea:</strong></p>
+                    <pre>    1   2   3   4
+1   0  10  15  20
+2  10   0  35  25
+3  15  35   0  30
+4  20  25  30   0</pre>
+                    
+                    <ol>
+                        <li><strong>Pas 1:</strong> Suntem în orașul 1
+                            <ul>
+                                <li>Orașe nevizitate: 2, 3, 4</li>
+                                <li>Distanțe: 1→2 = 10, 1→3 = 15, 1→4 = 20</li>
+                                <li>Alegem orașul 2 (cost minim = 10)</li>
+                                <li>Cost total = 10</li>
+                            </ul>
+                        </li>
+                        <li><strong>Pas 2:</strong> Suntem în orașul 2
+                            <ul>
+                                <li>Orașe nevizitate: 3, 4</li>
+                                <li>Distanțe: 2→3 = 35, 2→4 = 25</li>
+                                <li>Alegem orașul 4 (cost minim = 25)</li>
+                                <li>Cost total = 10 + 25 = 35</li>
+                            </ul>
+                        </li>
+                        <li><strong>Pas 3:</strong> Suntem în orașul 4
+                            <ul>
+                                <li>Orașe nevizitate: 3</li>
+                                <li>Distanță: 4→3 = 30</li>
+                                <li>Alegem orașul 3 (singurul rămas)</li>
+                                <li>Cost total = 35 + 30 = 65</li>
+                            </ul>
+                        </li>
+                        <li><strong>Pas Final:</strong> Întoarcere la oraș 1
+                            <ul>
+                                <li>Distanță: 3→1 = 15</li>
+                                <li><strong>Cost total final = 65 + 15 = 80</strong></li>
+                            </ul>
+                        </li>
+                    </ol>
+                    
+                    <p><strong>Traseu găsit:</strong> 1 → 2 → 4 → 3 → 1 (cost: 80)</p>
+                    <p><em>Notă: Aceasta poate să nu fie soluția optimă! Pentru acest exemplu, traseul 1 → 2 → 3 → 4 → 1 ar avea cost 10 + 35 + 30 + 20 = 95, deci soluția greedy este mai bună în acest caz.</em></p>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <h2 class="section-title">🎯 Variabile Cheie</h2>
+                <div class="section-content">
+                    <ul>
+                        <li><strong>viz[i]:</strong> true dacă orașul i a fost vizitat, false altfel</li>
+                        <li><strong>oras_curent:</strong> orașul în care ne aflăm momentan</li>
+                        <li><strong>cost_minim:</strong> costul minim găsit pentru următorul oraș (se resetează la fiecare pas)</li>
+                        <li><strong>oras_urmator:</strong> următorul oraș pe care îl vom vizita</li>
+                        <li><strong>cost_total:</strong> suma totală a costurilor drumului</li>
+                        <li><strong>distanta[i][j]:</strong> costul/distanța de la orașul i la orașul j</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <h2 class="section-title">📊 Complexitate</h2>
+                <div class="section-content">
+                    <ul>
+                        <li><strong>Timp:</strong> O(n²), unde n este numărul de orașe
+                            <ul>
+                                <li>Pentru fiecare din cele n orașe, parcurgem toate orașele pentru a găsi minimul</li>
+                            </ul>
+                        </li>
+                        <li><strong>Spațiu:</strong> O(n²) pentru matricea de distanțe + O(n) pentru vectorul de vizitare</li>
+                    </ul>
+                    
+                    <p><strong>Comparație cu alte soluții:</strong></p>
+                    <ul>
+                        <li><strong>Brute Force (toate permutările):</strong> O(n!) - imposibil pentru n > 15</li>
+                        <li><strong>Dynamic Programming (Held-Karp):</strong> O(n² · 2ⁿ) - soluție optimă, dar lent pentru n > 20</li>
+                        <li><strong>Greedy (Nearest Neighbor):</strong> O(n²) - rapid, dar aproximativ</li>
+                    </ul>
+                    
+                    <p>
+                        Algoritmul Greedy este extrem de rapid și util în practică pentru probleme cu multe orașe, 
+                        chiar dacă nu garantează soluția optimă.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSolution() {
+            const solution = document.getElementById('solution');
+            const button = document.querySelector('.solution-toggle');
+            
+            solution.classList.toggle('active');
+            
+            if (solution.classList.contains('active')) {
+                button.textContent = '🔒 Ascunde Soluția';
+                solution.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                button.textContent = '🔓 Afișează Soluția';
+            }
+        }
+    </script>
+          

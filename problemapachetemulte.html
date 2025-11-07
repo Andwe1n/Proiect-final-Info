@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Problema Mutării Pachetelor - DinamicGreedy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 102, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 245, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 70%, rgba(138, 43, 226, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 128, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+            z-index: -1;
+            animation: meshMove 20s ease-in-out infinite;
+        }
+
+        @keyframes meshMove {
+            0%, 100% {
+                background-position: 0% 0%, 100% 0%, 0% 100%, 100% 100%, 0% 0%;
+            }
+            50% {
+                background-position: 100% 100%, 0% 0%, 100% 100%, 0% 0%, 50% 50%;
+            }
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            padding: 1.5rem 0;
+        }
+
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 3rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00f5ff, #0066ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(135deg, #0066ff, #00f5ff);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 20px rgba(0, 102, 255, 0.3);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.5);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 120px 3rem 5rem;
+        }
+
+        .problem-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .problem-title {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00f5ff, #0066ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .problem-meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: rgba(0, 102, 255, 0.1);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 20px;
+            font-size: 0.95rem;
+        }
+
+        .difficulty-easy {
+            background: rgba(46, 213, 115, 0.2);
+            border-color: #2ed573;
+            color: #2ed573;
+        }
+
+        .difficulty-medium {
+            background: rgba(255, 159, 67, 0.2);
+            border-color: #ff9f43;
+            color: #ff9f43;
+        }
+
+        .difficulty-hard {
+            background: rgba(255, 71, 87, 0.2);
+            border-color: #ff4757;
+            color: #ff4757;
+        }
+
+        .content-section {
+            background: linear-gradient(145deg, rgba(20, 20, 20, 0.8), rgba(30, 30, 30, 0.6));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.05), rgba(0, 245, 255, 0.05));
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .content-section:hover::before {
+            opacity: 1;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: #00f5ff;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-content {
+            color: #b0b0b0;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-content p {
+            margin-bottom: 1rem;
+        }
+
+        .section-content ul, .section-content ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .example-box {
+            background: rgba(0, 102, 255, 0.1);
+            border-left: 4px solid #00f5ff;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .example-label {
+            color: #00f5ff;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            background: rgba(0, 245, 255, 0.1);
+            padding: 0.2rem 0.6rem;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            color: #00f5ff;
+        }
+
+        pre {
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: #e0e0e0;
+        }
+
+        .hint-box {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(0, 245, 255, 0.1));
+            border: 1px solid rgba(138, 43, 226, 0.4);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .hint-title {
+            color: #ba55d3;
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .solution-toggle {
+            background: linear-gradient(135deg, #0066ff, #00f5ff);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 20px rgba(0, 102, 255, 0.3);
+            margin: 2rem 0;
+        }
+
+        .solution-toggle:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.5);
+        }
+
+        .solution-content {
+            display: none;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .solution-content.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 100px 1.5rem 3rem;
+            }
+
+            .problem-title {
+                font-size: 2rem;
+            }
+
+            .content-section {
+                padding: 2rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            nav {
+                padding: 0 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">{ DinamicGreedy }</a>
+            <a href="index.html#probleme" class="back-btn">
+                ← Înapoi la Probleme
+            </a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- Problem Header -->
+        <div class="problem-header">
+            <h1 class="problem-title">📦 Problema Mutării Pachetelor</h1>
+            <div class="problem-meta">
+                <div class="meta-item difficulty-hard">
+                    <span>📊</span>
+                    <span>Dificultate: Greu</span>
+                </div>
+                <div class="meta-item">
+                    <span>🎯</span>
+                    <span>Tip: Greedy + Cicluri</span>
+                </div>
+                <div class="meta-item">
+                    <span>⏱️</span>
+                    <span>Timp: 30-40 min</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enunț -->
+        <div class="content-section">
+            <h2 class="section-title">📝 Enunțul Problemei</h2>
+            <div class="section-content">
+                <p>
+                    Într-un depozit foarte mare există un raft cu <code>n+1</code> spații de depozitare, numerotate de la <code>1</code> la <code>n+1</code>.
+                </p>
+                <ul>
+                    <li>Primele <code>n</code> spații de depozitare sunt ocupate cu <code>n</code> pachete numerotate cu valori între 1 și n</li>
+                    <li>Spațiul de depozitare <code>n+1</code> este gol</li>
+                </ul>
+                <p>
+                    Administratorul depozitului decide mutarea pachetelor, astfel încât pentru orice <code>i</code>, 
+                    pachetul numerotat cu <code>i</code> să se afle în spațiul de depozitare <code>i</code>.
+                </p>
+                <p>
+                    Pentru aceasta se va folosi spațiul de depozitare suplimentar, <code>n+1</code>, singura manevră validă 
+                    fiind mutarea unui pachet dintr-un spațiu de depozitare în altul, cu condiția ca acesta să fie gol.
+                </p>
+                <p>
+                    <strong>Determinați o succesiune de manevre prin care fiecare pachet să fie în spațiul corect.</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- Date de Intrare/Ieșire -->
+        <div class="content-section">
+            <h2 class="section-title">📥 Date de Intrare și Ieșire</h2>
+            <div class="section-content">
+                <p><strong>Intrare:</strong> (fișierul <code>pachete_multe.in</code>)</p>
+                <ul>
+                    <li><code>n</code> - numărul de pachete (pe prima linie)</li>
+                    <li>Pe următoarea linie: <code>n</code> numere reprezentând pachetele din pozițiile 1, 2, ..., n</li>
+                </ul>
+                
+                <p><strong>Ieșire:</strong> (fișierul <code>pachete_multe.out</code>)</p>
+                <ul>
+                    <li>Pe prima linie: numărul total de mutări efectuate</li>
+                    <li>Pe următoarele linii: perechi de numere <code>de_la</code> și <code>la</code>, reprezentând mutarea pachetului din poziția <code>de_la</code> în poziția <code>la</code></li>
+                </ul>
+
+                <div class="example-box">
+                    <div class="example-label">Exemplu 1:</div>
+                    <strong>Intrare:</strong><br>
+                    3<br>
+                    2 3 1<br><br>
+                    <strong>Explicație:</strong> Poziția 1 conține pachetul 2, poziția 2 conține pachetul 3, poziția 3 conține pachetul 1<br><br>
+                    <strong>Ieșire:</strong><br>
+                    6<br>
+                    1 4<br>
+                    3 1<br>
+                    2 3<br>
+                    4 2<br>
+                    <em>(Configurație finală: pachetul 1 la poziția 1, pachetul 2 la poziția 2, pachetul 3 la poziția 3)</em>
+                </div>
+
+                <div class="example-box">
+                    <div class="example-label">Exemplu 2:</div>
+                    <strong>Intrare:</strong><br>
+                    4<br>
+                    1 2 4 3<br><br>
+                    <strong>Explicație:</strong> Pachetele 1 și 2 sunt deja la locul lor, doar 3 și 4 trebuie schimbate<br><br>
+                    <strong>Ieșire:</strong><br>
+                    3<br>
+                    3 5<br>
+                    4 3<br>
+                    5 4
+                </div>
+            </div>
+        </div>
+
+        <!-- Cerințe -->
+        <div class="content-section">
+            <h2 class="section-title">✅ Cerințe</h2>
+            <div class="section-content">
+                <ol>
+                    <li>Citiți configurația inițială a pachetelor</li>
+                    <li>Identificați pachetele care nu sunt la locul lor</li>
+                    <li>Folosiți spațiul liber (n+1) pentru a muta pachetele</li>
+                    <li>Pentru fiecare poziție i, aduceți pachetul i la locul său</li>
+                    <li>Afișați toate mutările efectuate în ordine</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Hint -->
+        <div class="hint-box">
+            <div class="hint-title">💡 Hint</div>
+            <div class="section-content">
+                <p>
+                    Pentru fiecare poziție <code>i</code> de la 1 la n, verifică dacă pachetul <code>i</code> este deja la locul lui. 
+                    Dacă nu, eliberează mai întâi poziția <code>i</code> (mutând ce e acolo în spațiul liber), apoi adu pachetul <code>i</code> 
+                    din poziția lui curentă la poziția <code>i</code>. Ține evidența unde se află fiecare pachet și care poziție este liberă.
+                </p>
+            </div>
+        </div>
+
+        <!-- Abordare -->
+        <div class="content-section">
+            <h2 class="section-title">🔍 Abordarea Greedy</h2>
+            <div class="section-content">
+                <p>Problema se rezolvă folosind strategia Greedy în următorii pași:</p>
+                <ol>
+                    <li><strong>Inițializare:</strong> Memorăm ce pachet este în fiecare spațiu și unde se află fiecare pachet</li>
+                    <li><strong>Parcurgere secvențială:</strong> Pentru fiecare poziție i de la 1 la n:</li>
+                    <ul>
+                        <li>Dacă pachetul i este deja la poziția i, continuăm</li>
+                        <li>Altfel, eliberăm poziția i (dacă nu e deja goală) mutând conținutul în spațiul liber</li>
+                        <li>Mutăm pachetul i din poziția lui curentă la poziția i</li>
+                    </ul>
+                    <li><strong>Actualizare:</strong> După fiecare mutare, actualizăm poziția liberă și evidența pachetelor</li>
+                </ol>
+                
+                <p><strong>De ce funcționează Greedy?</strong></p>
+                <p>
+                    Deoarece rezolvăm problema poziție cu poziție, în ordine crescătoare. Odată ce am pus pachetul <code>i</code> 
+                    la poziția <code>i</code>, nu îl mai mutăm niciodată. Astfel, când ajungem la poziția <code>i+1</code>, 
+                    pozițiile 1, 2, ..., i sunt deja finalizate și nu le mai atingem.
+                </p>
+            </div>
+        </div>
+
+        <!-- Soluție Button -->
+        <button class="solution-toggle" onclick="toggleSolution()">
+            🔓 Afișează Soluția
+        </button>
+
+        <!-- Soluție (Hidden) -->
+        <div id="solution" class="solution-content">
+            <div class="content-section">
+                <h2 class="section-title">💻 Soluția în C++</h2>
+                <div class="section-content">
+                    <pre><code>#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+using namespace std;
+
+const int N = 100005;
+int n;
+int spatiu[N]; // spatiu[i] = ce pachet este în poziția i (0 = gol)
+int pozitie[N]; // pozitie[i] = la ce poziție se află pachetul i
+int liber; // poziția liberă (n+1)
+int mutari = 0;
+
+int mutari_de_la[2 * N]; // de unde mutăm
+int mutari_la[2 * N]; // unde mutăm
+
+// Mută pachetul din poziția 'de_la' în poziția liberă
+void muta(int de_la) {
+    mutari++;
+    mutari_de_la[mutari] = de_la;
+    mutari_la[mutari] = liber;
+    
+    spatiu[liber] = spatiu[de_la]; // punem pachetul în poziția liberă
+    pozitie[spatiu[de_la]] = liber; // actualizăm poziția pachetului
+    spatiu[de_la] = 0; // poziția anterioară devine goală
+    liber = de_la; // devine noua poziție liberă
+}
+
+int main() {
+    ifstream f("pachete_multe.in");
+    ofstream g("pachete_multe.out");
+
+    f >> n;
+
+    // Citim pachetele din primele n poziții
+    for (int i = 1; i <= n; ++i) {
+        f >> spatiu[i];
+        pozitie[spatiu[i]] = i;
+    }
+
+    // Poziția n+1 este goală
+    spatiu[n + 1] = 0;
+    liber = n + 1;
+
+    // Parcurgem toate pozițiile de la 1 la n
+    for (int i = 1; i <= n; ++i) {
+        if (spatiu[i] != i) {
+            if (spatiu[i] != 0) {
+                muta(i); // eliberăm poziția i
+            }
+            muta(pozitie[i]); // aducem pachetul i la poziția i
+        }
+    }
+
+    // Scriem rezultatul
+    g << mutari << endl;
+    for (int i = 1; i <= mutari; ++i) {
+        g << mutari_de_la[i] << " " << mutari_la[i] << endl;
+    }
+
+    return 0;
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <h2 class="section-title">📊 Explicație Pas cu Pas</h2>
+                <div class="section-content">
+                    <p><strong>Pentru n = 3, pachete: 2 3 1</strong></p>
+                    <p><em>Configurație inițială:</em> Poziția 1→pachet 2, Poziția 2→pachet 3, Poziția 3→pachet 1, Poziția 4→gol</p>
+                    <ol>
+                        <li><strong>i = 1:</strong> spatiu[1] = 2 ≠ 1
+                            <ul>
+                                <li>Eliberăm poziția 1: mutăm pachetul 2 din poziția 1 în poziția 4 (liber)</li>
+                                <li>Aducem pachetul 1: mutăm pachetul 1 din poziția 3 în poziția 1 (liber)</li>
+                            </ul>
+                        </li>
+                        <li><strong>i = 2:</strong> spatiu[2] = 3 ≠ 2
+                            <ul>
+                                <li>Eliberăm poziția 2: mutăm pachetul 3 din poziția 2 în poziția 3 (liber)</li>
+                                <li>Aducem pachetul 2: mutăm pachetul 2 din poziția 4 în poziția 2 (liber)</li>
+                            </ul>
+                        </li>
+                        <li><strong>i = 3:</strong> spatiu[3] = 3 = 3 ✓ (deja la locul lui)</li>
+                    </ol>
+                    <p><strong>Total: 4 mutări</strong></p>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <h2 class="section-title">🎯 Structuri de Date Folosite</h2>
+                <div class="section-content">
+                    <ul>
+                        <li><strong>spatiu[i]:</strong> ce pachet se află în poziția i (0 dacă poziția e goală)</li>
+                        <li><strong>pozitie[i]:</strong> la ce poziție se află pachetul i</li>
+                        <li><strong>liber:</strong> care poziție este liberă în momentul curent</li>
+                        <li><strong>mutari_de_la[], mutari_la[]:</strong> vectori pentru a memora mutările efectuate</li>
+                    </ul>
+                    <p>
+                        Aceste structuri ne permit să găsim rapid unde se află un pachet și să actualizăm 
+                        eficient configurația după fiecare mutare.
+                    </p>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <h2 class="section-title">📊 Complexitate</h2>
+                <div class="section-content">
+                    <ul>
+                        <li><strong>Timp:</strong> O(n), unde n este numărul de pachete</li>
+                        <li><strong>Spațiu:</strong> O(n), pentru vectorii de stocare</li>
+                        <li><strong>Număr de mutări:</strong> Maxim 2n mutări (în cel mai rău caz, pentru fiecare poziție facem 2 mutări)</li>
+                    </ul>
+                    <p>
+                        Algoritmul este foarte eficient deoarece fiecare pachet este mutat de maximum 2 ori: 
+                        o dată când eliberăm poziția și o dată când îl aducem la locul lui final.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSolution() {
+            const solution = document.getElementById('solution');
+            const button = document.querySelector('.solution-toggle');
+            
+            solution.classList.toggle('active');
+            
+            if (solution.classList.contains('active')) {
+                button.textContent = '🔒 Ascunde Soluția';
+                solution.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                button.textContent = '🔓 Afișează Soluția';
+            }
+        }
+    </script>
+</body>
+</html>
